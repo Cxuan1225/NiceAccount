@@ -2,37 +2,34 @@
 
 namespace App\Http\Controllers\Accounting;
 
-use Illuminate\Routing\Controller;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-abstract class BaseAccountingController extends Controller
-{
+abstract class BaseAccountingController extends Controller {
     protected int $companyId;
 
-    public function __construct()
-    {
+    public function __construct() {
+        $this->middleware([ 'auth', 'verified' ]);
+
         $this->middleware(function ($request, $next) {
-            $this->companyId = $request->user()->company_id ?? 1;
+            $this->companyId = $this->currentCompanyId();
             return $next($request);
         });
     }
 
-    protected function coaTypes(): array
-    {
-        return ['ASSET', 'LIABILITY', 'EQUITY', 'INCOME', 'EXPENSE'];
+    protected function coaTypes() : array {
+        return [ 'ASSET', 'LIABILITY', 'EQUITY', 'INCOME', 'EXPENSE' ];
     }
 
 
-    protected function normalizeStatus(?string $status, string $default = 'POSTED'): string
-    {
+    protected function normalizeStatus(?string $status, string $default = 'POSTED') : string {
         return strtoupper(trim($status ?: $default));
     }
 
-    protected function dateRange(Request $request): array
-    {
+    protected function dateRange(Request $request) : array {
         return [
             'from' => $request->query('from'),
-            'to' => $request->query('to'),
+            'to'   => $request->query('to'),
         ];
     }
 }

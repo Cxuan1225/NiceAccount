@@ -13,7 +13,6 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-
 import {
     LayoutGrid,
     Receipt,
@@ -22,6 +21,7 @@ import {
     Users,
     FileText,
     Settings,
+    Building2
 } from 'lucide-vue-next'; import AppLogo from './AppLogo.vue';
 import { ref, computed } from 'vue'
 
@@ -30,6 +30,17 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Company',
+        icon: Building2,
+        roles: ['admin'], // or remove if all users can switch
+        children: [
+            {
+                title: 'Switch Company',
+                href: '/companies',
+            },
+        ],
     },
     {
         title: 'Sales',

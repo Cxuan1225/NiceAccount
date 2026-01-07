@@ -13,7 +13,7 @@ use App\Http\Controllers\Accounting\Reports\ProfitLossController;
 use App\Http\Controllers\Accounting\Reports\BalanceSheetController;
 use App\Http\Controllers\Accounting\Reports\GeneralLedgerController;
 
-Route::middleware([ 'auth', 'verified' ])
+Route::middleware([ 'auth', 'verified', 'active_company' ])
     ->prefix('accountings')
     ->group(function () {
 
