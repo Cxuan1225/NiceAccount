@@ -33,21 +33,6 @@ type JournalDetailPayload = {
     total: { debit: number; credit: number; balanced: boolean }
 }
 
-type LedgerRow = {
-    date: string | null
-    reference: string | null
-    description: string | null
-    debit: number
-    credit: number
-    balance: number
-}
-
-type LedgerPayload = {
-    account: { id: number; code?: string | null; name?: string | null }
-    ledger: LedgerRow[]
-    closing_balance?: number
-}
-
 const props = defineProps<{
     entries: Paginated<Row>
     filters: { q: string }
@@ -109,9 +94,6 @@ async function openDetail(id: number) {
 function closeDetail() {
     showDetailModal.value = false
     detail.value = null
-
-    // optional: also close ledger if it’s open
-    closeLedger()
 }
 
 function isDebit(l: Line) {
@@ -154,43 +136,6 @@ async function reverseEntry() {
 }
 
 // -------------------------
-// Ledger Modal
-// -------------------------
-const showLedgerModal = ref(false)
-const ledgerLoading = ref(false)
-const ledgerData = ref<LedgerPayload | null>(null)
-
-async function openLedger(accountId: number) {
-    showLedgerModal.value = true
-    ledgerLoading.value = true
-    ledgerData.value = null
-
-    try {
-        const res = await fetch(`/accountings/ledger/${accountId}`, {
-            headers: { Accept: 'application/json' },
-            credentials: 'same-origin',
-        })
-
-        if (!res.ok) {
-            const data = await safeJson(res)
-            throw new Error(data?.message || 'Failed to load ledger')
-        }
-
-        ledgerData.value = (await res.json()) as LedgerPayload
-    } catch (e: any) {
-        notyf.error(e?.message || 'Failed to load ledger')
-        showLedgerModal.value = false
-    } finally {
-        ledgerLoading.value = false
-    }
-}
-
-function closeLedger() {
-    showLedgerModal.value = false
-    ledgerData.value = null
-}
-
-// -------------------------
 // Helpers
 // -------------------------
 async function safeJson(res: Response): Promise<any> {
@@ -207,11 +152,6 @@ async function safeJson(res: Response): Promise<any> {
 function onKeydown(e: KeyboardEvent) {
     if (e.key !== 'Escape') return
 
-    // Close the top-most modal first
-    if (showLedgerModal.value) {
-        closeLedger()
-        return
-    }
     if (showDetailModal.value) {
         closeDetail()
         return
@@ -333,12 +273,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                                     <tbody>
                                         <tr v-for="l in detail.lines" :key="l.id" class="border-t">
                                             <td class="px-3 py-2">
-                                                <button class="text-blue-600 underline"
-                                                    @click="openLedger(l.account_id)">
-                                                    {{ l.account_code || '-' }} - {{ l.account_name || '-' }}
-                                                </button>
+                                                {{ l.account_code || '-' }} - {{ l.account_name || '-' }}
                                             </td>
-
                                             <td class="px-3 py-2">{{ l.memo || '-' }}</td>
 
                                             <td class="px-3 py-2 text-right whitespace-nowrap">
@@ -391,78 +327,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                         </button>
 
                         <button class="border rounded px-3 py-2 text-sm" @click="closeDetail">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ========================= -->
-        <!-- Ledger Modal (stack above) -->
-        <!-- ========================= -->
-        <div v-if="showLedgerModal" class="fixed inset-0 z-[60]">
-            <div class="absolute inset-0 bg-black/40" @click="closeLedger"></div>
-
-            <div class="absolute inset-0 flex items-center justify-center p-4">
-                <div class="w-full max-w-5xl bg-white rounded-lg shadow-lg overflow-hidden" @click.stop>
-                    <div class="px-4 py-3 border-b flex items-center justify-between">
-                        <div class="font-semibold">
-                            Ledger
-                            <span v-if="ledgerData?.account" class="text-slate-500 font-normal">
-                                — {{ ledgerData?.account?.code || '' }} {{ ledgerData?.account?.name || '' }}
-                            </span>
-                        </div>
-
-                        <button class="text-sm underline" @click="closeLedger">Close</button>
-                    </div>
-
-                    <div class="p-4">
-                        <div v-if="ledgerLoading" class="py-10 text-center text-slate-500">Loading...</div>
-
-                        <div v-else-if="ledgerData" class="border rounded overflow-x-auto">
-                            <table class="min-w-full text-sm">
-                                <thead class="bg-slate-50">
-                                    <tr class="text-left">
-                                        <th class="px-3 py-2">Date</th>
-                                        <th class="px-3 py-2">Ref</th>
-                                        <th class="px-3 py-2">Description</th>
-                                        <th class="px-3 py-2 text-right">Debit</th>
-                                        <th class="px-3 py-2 text-right">Credit</th>
-                                        <th class="px-3 py-2 text-right">Balance</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    <tr v-if="!ledgerData.ledger?.length">
-                                        <td colspan="6" class="px-3 py-8 text-center text-slate-500">
-                                            No ledger records.
-                                        </td>
-                                    </tr>
-
-                                    <tr v-for="(r, i) in ledgerData.ledger" :key="i" class="border-t">
-                                        <td class="px-3 py-2 whitespace-nowrap">{{ r.date || '-' }}</td>
-                                        <td class="px-3 py-2 whitespace-nowrap">{{ r.reference || '-' }}</td>
-                                        <td class="px-3 py-2">{{ r.description || '-' }}</td>
-                                        <td class="px-3 py-2 text-right whitespace-nowrap">
-                                            {{ r.debit ? r.debit.toFixed(2) : '' }}
-                                        </td>
-                                        <td class="px-3 py-2 text-right whitespace-nowrap">
-                                            {{ r.credit ? r.credit.toFixed(2) : '' }}
-                                        </td>
-                                        <td class="px-3 py-2 text-right whitespace-nowrap font-medium">
-                                            {{ r.balance.toFixed(2) }}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div v-else class="py-10 text-center text-slate-500">
-                            Unable to load ledger.
-                        </div>
-                    </div>
-
-                    <div class="px-4 py-3 border-t flex justify-end gap-2">
-                        <button class="border rounded px-3 py-2 text-sm" @click="closeLedger">Close</button>
                     </div>
                 </div>
             </div>
