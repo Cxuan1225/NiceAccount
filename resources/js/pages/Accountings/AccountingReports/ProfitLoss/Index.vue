@@ -13,14 +13,14 @@ onMounted(() => {
         const offFinish = router.on('finish', () => { isLoading.value = false })
         const offError = router.on('error', () => { isLoading.value = false })
         unsubs = [offStart, offFinish, offError].filter(Boolean) as Array<() => void>
-    } catch (e) {
+    } catch {
         isLoading.value = false
     }
 })
 
 onBeforeUnmount(() => {
     for (let i = 0; i < unsubs.length; i++) {
-        try { unsubs[i]() } catch (e) { }
+        try { unsubs[i]() } catch { }
     }
 })
 
@@ -110,7 +110,7 @@ const netProfit = computed(() => props.totals?.net_profit || 0)
         <div class="px-6 py-4">
             <ReportHeader title="Accounting Reports" subtitle="Profit & Loss" :tabs="reportTabs"
                 :from="props.filters.from" :to="props.filters.to" :status="props.filters.status"
-                :showZero="form.show_zero" :isLoading="isLoading.value">
+                :showZero="form.show_zero" :isLoading="isLoading">
                 <template #actions>
                     <button type="button"
                         class="h-9 px-3 text-sm border rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"

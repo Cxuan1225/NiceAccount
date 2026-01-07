@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import {
@@ -16,8 +15,6 @@ import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 
 import {
-    BookOpen,
-    Folder,
     LayoutGrid,
     Receipt,
     Wallet,

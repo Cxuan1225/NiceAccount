@@ -129,13 +129,13 @@ function submitFY() {
 }
 
 /** Collapse */
-const expandedFyId = ref(null)
+const expandedFyId = ref<number | null>(null)
 
-function toggleFY(fy) {
+function toggleFY(fy: FY) {
     expandedFyId.value = expandedFyId.value === fy.id ? null : fy.id
 }
 
-function isExpanded(fy) {
+function isExpanded(fy: FY): boolean {
     return expandedFyId.value === fy.id
 }
 
@@ -293,7 +293,7 @@ function selectableCount(fy: FY) {
     return eligibleIdsByMode(fy).length
 }
 
-async function confirmCloseFY(fy: FY) {
+async function confirmCloseFY() {
     return Swal.fire({
         title: 'Close financial year?',
         text: 'This will permanently close the financial year and hide its periods. You will not be able to unlock/lock periods anymore.',
@@ -307,7 +307,7 @@ async function confirmCloseFY(fy: FY) {
 }
 
 async function closeFY(fy: FY) {
-    const r = await confirmCloseFY(fy)
+    const r = await confirmCloseFY()
     if (!r.isConfirmed) return
 
     router.post(`/accountings/financial-years/${fy.id}/close`, {}, {

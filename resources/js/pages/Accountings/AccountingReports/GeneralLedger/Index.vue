@@ -68,14 +68,14 @@ onMounted(() => {
         const offFinish = router.on('finish', () => (isLoading.value = false))
         const offError = router.on('error', () => (isLoading.value = false))
         unsubs = [offStart, offFinish, offError].filter(Boolean) as Array<() => void>
-    } catch (e) {
+    } catch {
         isLoading.value = false
     }
 })
 
 onBeforeUnmount(() => {
     for (let i = 0; i < unsubs.length; i++) {
-        try { unsubs[i]() } catch (e) { }
+        try { unsubs[i]() } catch { }
     }
 })
 
