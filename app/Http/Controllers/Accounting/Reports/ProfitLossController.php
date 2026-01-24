@@ -10,7 +10,7 @@ use Inertia\Inertia;
 
 class ProfitLossController extends BaseAccountingController {
     public function index(ProfitLossReportRequest $request, ProfitLossReportService $service) {
-        $companyId = (int) ($request->user()->company_id ?? 1);
+        $companyId = $this->companyId;
 
         $filters = ReportFiltersDTO::fromRequest($request, $companyId);
 

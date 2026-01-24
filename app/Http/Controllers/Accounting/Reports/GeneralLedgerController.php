@@ -12,7 +12,7 @@ use Inertia\Inertia;
 
 class GeneralLedgerController extends BaseAccountingController {
     public function index(GeneralLedgerReportRequest $request, GeneralLedgerReportService $service) {
-        $companyId = (int) ($request->user()->company_id ?? 1);
+        $companyId = $this->companyId;
 
         $accounts = DB::table('chart_of_accounts')
             ->select('id', 'account_code', 'name', 'type')

@@ -11,7 +11,7 @@ use Inertia\Inertia;
 
 class BalanceSheetController extends BaseAccountingController {
     public function index(BalanceSheetReportRequest $request, BalanceSheetReportService $service) {
-        $companyId = (int) ($request->user()->company_id ?? 1);
+        $companyId = $this->companyId;
 
         $base = ReportFiltersDTO::fromRequest($request, $companyId);
         $asAt = Filters::asAt($request); // as_at / asAtDb

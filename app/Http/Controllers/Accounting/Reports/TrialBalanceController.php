@@ -14,7 +14,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class TrialBalanceController extends BaseAccountingController {
     public function index(TrialBalanceReportRequest $request, TrialBalanceReportService $service) {
-        $companyId = (int) ($request->user()->company_id ?? 1);
+        $companyId = $this->companyId;
 
         $filters = ReportFiltersDTO::fromRequest($request, $companyId);
 
@@ -24,7 +24,7 @@ class TrialBalanceController extends BaseAccountingController {
     }
 
     public function exportExcel(TrialBalanceReportRequest $request, TrialBalanceReportService $service) {
-        $companyId = (int) ($request->user()->company_id ?? 1);
+        $companyId = $this->companyId;
 
         $filters = ReportFiltersDTO::fromRequest($request, $companyId);
 
@@ -39,7 +39,7 @@ class TrialBalanceController extends BaseAccountingController {
     }
 
     public function exportPdf(TrialBalanceReportRequest $request, TrialBalanceReportService $service) {
-        $companyId = (int) ($request->user()->company_id ?? 1);
+        $companyId = $this->companyId;
 
         $filters = ReportFiltersDTO::fromRequest($request, $companyId);
 
