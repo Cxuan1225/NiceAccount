@@ -19,11 +19,20 @@ class OpeningBalanceController extends BaseAccountingController {
 
         $obe = ChartOfAccount::query()
             ->where('company_id', $this->companyId)
-            ->systemRole(ChartOfAccount::ROLE_OPENING_BALANCE_EQUITY)
+            ->where(function ($query) {
+                $query
+                    ->systemRole(ChartOfAccount::ROLE_OPENING_BALANCE_EQUITY)
+                    ->orWhereIn('account_code', [ '3200', '3000' ]);
+            })
+            ->orderByRaw("CASE WHEN system_role = ? THEN 0 WHEN account_code = '3200' THEN 1 ELSE 2 END", [
+                ChartOfAccount::ROLE_OPENING_BALANCE_EQUITY,
+            ])
             ->first([ 'id', 'account_code', 'name', 'type' ]);
 
         if (!$obe) {
-            throw new RuntimeException('Opening Balance Equity account is not configured.');
+            return redirect()
+                ->route('coa.index')
+                ->with('error', 'Opening Balance Equity account is not configured.');
         }
 
 
