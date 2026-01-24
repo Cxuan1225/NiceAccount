@@ -41,5 +41,8 @@ class Company extends Model {
             ->withTimestamps();
     }
 
-}
+    public function primaryUsers() {
+        return $this->hasMany(User::class);
+    }
 
+}

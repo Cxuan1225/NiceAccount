@@ -5,10 +5,14 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 
-class EnsureActiveCompany {
-    public function handle(Request $request, Closure $next) {
+class EnsureActiveCompany
+{
+    public function handle(Request $request, Closure $next)
+    {
         $user = $request->user();
-        if (!$user) return $next($request);
+        if (!$user) {
+            return $next($request);
+        }
 
         // allow access to company switch routes always
         if ($request->routeIs('companies.*') || $request->is('companies', 'companies/*')) {
@@ -17,18 +21,13 @@ class EnsureActiveCompany {
 
         // no selection -> go select
         if (!$user->active_company_id) {
-            $companyId = $user->companies()
-                ->wherePivot('status', 'active')
-                ->orderByDesc('company_user.is_default')
-                ->orderBy('companies.id')
-                ->value('companies.id');
-
-            if (!$companyId) {
-                return redirect()->route('companies.create');
+            $companyId = (int) ($user->company_id ?? 0);
+            if ($companyId > 0) {
+                $user->forceFill(['active_company_id' => $companyId])->save();
+                return $next($request);
             }
 
-            $user->forceFill([ 'active_company_id' => (int) $companyId ])->save();
-            return $next($request);
+            return redirect()->route('companies.create');
         }
 
         // selection exists, but confirm membership is active
@@ -38,8 +37,8 @@ class EnsureActiveCompany {
             ->exists();
 
         if (!$ok) {
-            $user->forceFill([ 'active_company_id' => null ])->save();
-            return redirect()->route('companies.index');
+            $user->forceFill(['active_company_id' => null])->save();
+            return redirect()->route('companies.select');
         }
 
         return $next($request);

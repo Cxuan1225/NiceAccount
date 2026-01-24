@@ -22,6 +22,7 @@ class User extends Authenticatable {
         'name',
         'email',
         'password',
+        'company_id',
     ];
 
     /**
@@ -55,6 +56,10 @@ class User extends Authenticatable {
             ->withTimestamps();
     }
 
+    public function company() {
+        return $this->belongsTo(Company::class, 'company_id');
+    }
+
     public function activeCompany() {
         return $this->belongsTo(Company::class, 'active_company_id');
     }
@@ -62,6 +67,10 @@ class User extends Authenticatable {
     // helpers
     public function hasCompany(int $companyId) : bool {
         return $this->companies()->where('companies.id', $companyId)->exists();
+    }
+
+    public function isSuperAdmin() : bool {
+        return $this->hasRole('Super Admin');
     }
 
 }
