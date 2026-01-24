@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
+import { index as balanceSheetIndex } from '@/routes/accountings/accounting-reports/balance-sheet'
+import { index as generalLedgerIndex } from '@/routes/accountings/accounting-reports/general-ledger'
+import { index as profitLossIndex } from '@/routes/accountings/accounting-reports/profit-loss'
+import { index as trialBalanceIndex } from '@/routes/accountings/accounting-reports/trial-balance'
 import ReportHeader from '@/components/accounting/ReportHeader.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { computed, reactive, ref, onMounted, onBeforeUnmount } from 'vue'
@@ -80,10 +84,10 @@ onBeforeUnmount(() => {
 })
 
 const tabs: Tab[] = [
-    { label: 'Trial Balance', href: '/accountings/accounting-reports/trial-balance', activePrefix: '/accountings/accounting-reports/trial-balance' },
-    { label: 'Profit & Loss', href: '/accountings/accounting-reports/profit-loss', activePrefix: '/accountings/accounting-reports/profit-loss' },
-    { label: 'Balance Sheet', href: '/accountings/accounting-reports/balance-sheet', activePrefix: '/accountings/accounting-reports/balance-sheet' },
-    { label: 'General Ledger', href: '/accountings/accounting-reports/general-ledger', activePrefix: '/accountings/accounting-reports/general-ledger' },
+    { label: 'Trial Balance', href: trialBalanceIndex().url, activePrefix: trialBalanceIndex().url },
+    { label: 'Profit & Loss', href: profitLossIndex().url, activePrefix: profitLossIndex().url },
+    { label: 'Balance Sheet', href: balanceSheetIndex().url, activePrefix: balanceSheetIndex().url },
+    { label: 'General Ledger', href: generalLedgerIndex().url, activePrefix: generalLedgerIndex().url },
 ]
 
 const form = reactive({
@@ -98,7 +102,7 @@ const form = reactive({
 
 function apply() {
     router.get(
-        '/accountings/accounting-reports/general-ledger',
+        generalLedgerIndex().url,
         {
             from: form.from || null,
             to: form.to || null,

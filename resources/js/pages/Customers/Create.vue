@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
+import { create as customersCreate, index as customersIndex, store as customersStore } from '@/routes/customers'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { type BreadcrumbItem } from '@/types'
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Customers', href: '/customers' },
-    { title: 'Create', href: '/customers/create' },
+    { title: 'Customers', href: customersIndex().url },
+    { title: 'Create', href: customersCreate().url },
 ]
 
 const form = useForm({
@@ -16,7 +17,7 @@ const form = useForm({
 })
 
 function submit() {
-    form.post('/customers')
+    form.post(customersStore().url)
 }
 </script>
 
@@ -28,7 +29,7 @@ function submit() {
         <div class="px-6 py-4 max-w-xl">
             <div class="flex items-center justify-between">
                 <h1 class="text-xl font-semibold">New Customer</h1>
-                <Link href="/customers" class="text-sm underline">Back</Link>
+                <Link :href="customersIndex().url" class="text-sm underline">Back</Link>
             </div>
 
             <form class="mt-6 space-y-4" @submit.prevent="submit">
@@ -69,7 +70,7 @@ function submit() {
                         {{ form.processing ? 'Saving...' : 'Save' }}
                     </button>
 
-                    <Link href="/customers" class="px-4 py-2 border rounded">
+                    <Link :href="customersIndex().url" class="px-4 py-2 border rounded">
                         Cancel
                     </Link>
                 </div>

@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
+import { create as coaCreate, index as coaIndex, store as coaStore } from '@/routes/coa'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 
 const props = defineProps<{ types: string[]; parents: { id: number; account_code: string; name: string }[] }>()
 
 const breadcrumbs = [
     { title: 'Accountings', href: '#' },
-    { title: 'Chart of Accounts', href: '/accountings/chart-of-accounts' },
-    { title: 'Create', href: '/accountings/chart-of-accounts/create' },
+    { title: 'Chart of Accounts', href: coaIndex().url },
+    { title: 'Create', href: coaCreate().url },
 ]
 
 const form = useForm({
@@ -19,7 +20,7 @@ const form = useForm({
 })
 
 function submit() {
-    form.post('/accountings/chart-of-accounts')
+    form.post(coaStore().url)
 }
 </script>
 
@@ -31,7 +32,7 @@ function submit() {
         <div class="px-6 py-4 max-w-xl">
             <div class="flex items-center justify-between">
                 <h1 class="text-xl font-semibold">New Account</h1>
-                <Link href="/accountings/chart-of-accounts" class="text-sm underline">Back</Link>
+                <Link :href="coaIndex().url" class="text-sm underline">Back</Link>
             </div>
 
             <form class="mt-6 space-y-4" @submit.prevent="submit">
@@ -77,7 +78,7 @@ function submit() {
                     <button class="border rounded px-4 py-2 text-sm" :disabled="form.processing">
                         {{ form.processing ? 'Saving...' : 'Save' }}
                     </button>
-                    <Link href="/accountings/chart-of-accounts" class="border rounded px-4 py-2 text-sm">Cancel</Link>
+                    <Link :href="coaIndex().url" class="border rounded px-4 py-2 text-sm">Cancel</Link>
                 </div>
             </form>
         </div>

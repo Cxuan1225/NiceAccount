@@ -1,6 +1,7 @@
 <!-- resources/js/Pages/AuditTrails/Index.vue -->
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
+import { index as auditTrailsIndex } from '@/routes/audit-trails'
 import { Head, router } from '@inertiajs/vue3'
 import { computed, reactive, ref } from 'vue'
 
@@ -52,7 +53,7 @@ const props = defineProps<{
 }>()
 
 const breadcrumbs = [
-    { title: 'Audit Trails', href: '/audit-trails' },
+    { title: 'Audit Trails', href: auditTrailsIndex().url },
 ]
 
 const form = reactive({
@@ -65,7 +66,7 @@ const form = reactive({
 
 function applyFilters() {
     router.get(
-        '/audit-trails',
+        auditTrailsIndex().url,
         {
             q: form.q || undefined,
             action: form.action || undefined,

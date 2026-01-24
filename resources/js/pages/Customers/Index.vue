@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
+import { create as customersCreate, destroy as customersDestroy, edit as customersEdit, index as customersIndex } from '@/routes/customers'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { type BreadcrumbItem } from '@/types'
@@ -11,7 +12,7 @@ const props = defineProps<{
 }>()
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Customers', href: '/customers' },
+    { title: 'Customers', href: customersIndex().url },
 ]
 
 // Normalize to a clean array and remove null items
@@ -29,7 +30,7 @@ function destroyCustomer(id: number) {
     confirmDelete('The customer will be permanently deleted.')
         .then((result) => {
             if (result.isConfirmed) {
-                router.delete(`/customers/${id}`, {
+                router.delete(customersDestroy(id).url, {
                     preserveScroll: true,
                     onSuccess: () => {
                         notyf.success('Customer deleted successfully')
@@ -54,7 +55,7 @@ function destroyCustomer(id: number) {
             <div class="flex items-center justify-between mb-4">
                 <h1 class="text-xl font-semibold">Customers</h1>
 
-                <Link href="/customers/create" class="px-3 py-2 border rounded text-sm">
+                <Link :href="customersCreate().url" class="px-3 py-2 border rounded text-sm">
                     New Customer
                 </Link>
             </div>
@@ -76,7 +77,7 @@ function destroyCustomer(id: number) {
                             <td class="p-3">{{ c.email || '-' }}</td>
                             <td class="p-3">{{ c.phone || '-' }}</td>
                             <td class="p-3 text-right space-x-2">
-                                <Link :href="`/customers/${c.id}/edit`" class="underline">
+                                <Link :href="customersEdit(c.id).url" class="underline">
                                     Edit
                                 </Link>
 

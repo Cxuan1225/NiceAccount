@@ -19,7 +19,7 @@ const page = usePage();
 
 /**
  * Read roles from Inertia shared props:
- * page.props.auth.roles = ['admin', 'staff', ...]
+ * page.props.auth.roles = ['Super Admin', 'Admin', 'Staff', ...]
  */
 const userRoles = computed<string[]>(() => {
     const roles = (page.props as any)?.auth?.roles;

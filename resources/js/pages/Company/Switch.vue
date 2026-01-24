@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
+import { switchMethod } from '@/routes/companies'
 import { Head, router } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
@@ -42,7 +43,7 @@ function switchCompany(companyId: number) {
     switchingId.value = companyId
 
     router.post(
-        '/companies/switch',
+        switchMethod().url,
         { company_id: companyId },
         {
             preserveScroll: true,

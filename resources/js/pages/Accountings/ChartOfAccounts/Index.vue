@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
+import { create as coaCreate, destroy as coaDestroy, edit as coaEdit, index as coaIndex } from '@/routes/coa'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { reactive } from 'vue'
 import { confirmDelete, notyf } from '@/utils/alerts'
@@ -22,7 +23,7 @@ const props = defineProps<{
     types: string[]
 }>()
 
-const breadcrumbs = [{ title: 'Accountings', href: '#' }, { title: 'Chart of Accounts', href: '/accountings/chart-of-accounts' }]
+const breadcrumbs = [{ title: 'Accountings', href: '#' }, { title: 'Chart of Accounts', href: coaIndex().url }]
 
 const form = reactive({
     q: props.filters.q ?? '',
@@ -30,7 +31,7 @@ const form = reactive({
 })
 
 function apply() {
-    router.get('/accountings/chart-of-accounts', { q: form.q || undefined, type: form.type || undefined }, { preserveState: true, replace: true })
+    router.get(coaIndex().url, { q: form.q || undefined, type: form.type || undefined }, { preserveState: true, replace: true })
 }
 
 function reset() {
@@ -47,7 +48,7 @@ function goTo(url: string | null) {
 function destroyAccount(id: number) {
     confirmDelete('Deleting an account may affect reports if it is used.').then((r) => {
         if (!r.isConfirmed) return
-        router.delete(`/accountings/chart-of-accounts/${id}`, {
+        router.delete(coaDestroy(id).url, {
             preserveScroll: true,
             onSuccess: () => notyf.success('Account deleted'),
             onError: () => notyf.error('Failed to delete account'),
@@ -64,7 +65,7 @@ function destroyAccount(id: number) {
         <div class="px-6 py-4">
             <div class="flex items-center justify-between">
                 <h1 class="text-xl font-semibold">Chart of Accounts</h1>
-                <Link href="/accountings/chart-of-accounts/create" class="text-sm underline">New Account</Link>
+                <Link :href="coaCreate().url" class="text-sm underline">New Account</Link>
             </div>
 
             <div class="mt-4 grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -110,7 +111,7 @@ function destroyAccount(id: number) {
                             <td class="px-3 py-2 whitespace-nowrap">{{ a.type }}</td>
                             <td class="px-3 py-2">{{ a.is_active ? 'Yes' : 'No' }}</td>
                             <td class="px-3 py-2 text-right whitespace-nowrap">
-                                <Link :href="`/accountings/chart-of-accounts/${a.id}/edit`"
+                                <Link :href="coaEdit(a.id).url"
                                     class="text-blue-600 hover:underline mr-3">Edit</Link>
                                 <button class="text-red-600 hover:underline"
                                     @click="destroyAccount(a.id)">Delete</button>

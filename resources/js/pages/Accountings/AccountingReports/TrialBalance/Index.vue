@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
+import { index as balanceSheetIndex } from '@/routes/accountings/accounting-reports/balance-sheet'
+import { index as generalLedgerIndex } from '@/routes/accountings/accounting-reports/general-ledger'
+import { index as profitLossIndex } from '@/routes/accountings/accounting-reports/profit-loss'
+import { index as trialBalanceIndex } from '@/routes/accountings/accounting-reports/trial-balance'
+import { excel as trialBalanceExcel, pdf as trialBalancePdf } from '@/routes/accountings/accounting-reports/trial-balance/export'
 import { Head, router } from '@inertiajs/vue3'
 import { reactive, computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import ReportHeader from '@/components/accounting/ReportHeader.vue'
@@ -54,14 +59,14 @@ const form = reactive({
 
 function apply() {
     router.get(
-        '/accountings/accounting-reports/trial-balance',
+        trialBalanceIndex().url,
         {
             from: form.from || null,
             to: form.to || null,
             status: form.status || null,
             show_zero: form.show_zero ? 1 : 0,
         },
-        { preserveState: true, replace: true, preserveScroll: true }
+            { preserveState: true, replace: true, preserveScroll: true }
     )
 }
 
@@ -91,14 +96,28 @@ const diff = computed(() => {
         <div class="px-6 py-4">
             <ReportHeader title="Accounting Reports"
                 subtitle="Financial statements generated from posted journal entries" :tabs="[
-                    { label: 'Trial Balance', href: '/accountings/accounting-reports/trial-balance', activePrefix: '/accountings/accounting-reports/trial-balance' },
-                    { label: 'Profit & Loss', href: '/accountings/accounting-reports/profit-loss', activePrefix: '/accountings/accounting-reports/profit-loss' },
-                    { label: 'Balance Sheet', href: '/accountings/accounting-reports/balance-sheet', activePrefix: '/accountings/accounting-reports/balance-sheet' },
-                    { label: 'General Ledger', href: '/accountings/accounting-reports/general-ledger', activePrefix: '/accountings/accounting-reports/general-ledger' },
+                    { label: 'Trial Balance', href: trialBalanceIndex().url, activePrefix: trialBalanceIndex().url },
+                    { label: 'Profit & Loss', href: profitLossIndex().url, activePrefix: profitLossIndex().url },
+                    { label: 'Balance Sheet', href: balanceSheetIndex().url, activePrefix: balanceSheetIndex().url },
+                    { label: 'General Ledger', href: generalLedgerIndex().url, activePrefix: generalLedgerIndex().url },
                 ]" :from="props.filters.from" :to="props.filters.to" :status="props.filters.status || 'posted'"
                 :showZero="form.show_zero" :isLoading="isLoading"
-                :exportPdfHref="`/accountings/accounting-reports/trial-balance/export/pdf?from=${form.from || ''}&to=${form.to || ''}&status=${form.status || ''}&show_zero=${form.show_zero ? 1 : 0}`"
-                :exportExcelHref="`/accountings/accounting-reports/trial-balance/export/excel?from=${form.from || ''}&to=${form.to || ''}&status=${form.status || ''}&show_zero=${form.show_zero ? 1 : 0}`" />
+                :exportPdfHref="trialBalancePdf.url({
+                    query: {
+                        from: form.from || null,
+                        to: form.to || null,
+                        status: form.status || null,
+                        show_zero: form.show_zero ? 1 : 0,
+                    }
+                })"
+                :exportExcelHref="trialBalanceExcel.url({
+                    query: {
+                        from: form.from || null,
+                        to: form.to || null,
+                        status: form.status || null,
+                        show_zero: form.show_zero ? 1 : 0,
+                    }
+                })" />
 
             <!-- Filters -->
             <div class="flex flex-wrap items-end gap-3 mb-4">

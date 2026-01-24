@@ -17,7 +17,18 @@ class EnsureActiveCompany {
 
         // no selection -> go select
         if (!$user->active_company_id) {
-            return redirect()->route('companies.index');
+            $companyId = $user->companies()
+                ->wherePivot('status', 'active')
+                ->orderByDesc('company_user.is_default')
+                ->orderBy('companies.id')
+                ->value('companies.id');
+
+            if (!$companyId) {
+                return redirect()->route('companies.create');
+            }
+
+            $user->forceFill([ 'active_company_id' => (int) $companyId ])->save();
+            return $next($request);
         }
 
         // selection exists, but confirm membership is active

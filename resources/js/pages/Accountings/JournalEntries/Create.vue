@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
+import { create as journalEntryCreate, index as journalEntryIndex, store as journalEntryStore } from '@/routes/je'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
@@ -9,8 +10,8 @@ const props = defineProps<{ accounts: Account[] }>()
 
 const breadcrumbs = [
     { title: 'Accountings', href: '#' },
-    { title: 'Journal Entries', href: '/accountings/journal-entries' },
-    { title: 'Create', href: '/accountings/journal-entries/create' },
+    { title: 'Journal Entries', href: journalEntryIndex().url },
+    { title: 'Create', href: journalEntryCreate().url },
 ]
 
 const form = useForm({
@@ -52,7 +53,7 @@ const creditTotal = computed(() => {
 const balanced = computed(() => debitTotal.value === creditTotal.value && debitTotal.value > 0)
 
 function submit() {
-    form.post('/accountings/journal-entries')
+    form.post(journalEntryStore().url)
 }
 </script>
 
@@ -64,7 +65,7 @@ function submit() {
         <div class="px-6 py-4 max-w-6xl">
             <div class="flex items-center justify-between">
                 <h1 class="text-xl font-semibold">New Journal Entry</h1>
-                <Link href="/accountings/journal-entries" class="text-sm underline">Back</Link>
+                <Link :href="journalEntryIndex().url" class="text-sm underline">Back</Link>
             </div>
 
             <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -176,7 +177,7 @@ function submit() {
                     @click="submit">
                     {{ form.processing ? 'Saving...' : 'Post Journal Entry' }}
                 </button>
-                <Link href="/accountings/journal-entries" class="border rounded px-4 py-2 text-sm">Cancel</Link>
+                <Link :href="journalEntryIndex().url" class="border rounded px-4 py-2 text-sm">Cancel</Link>
             </div>
 
             <div class="mt-3 text-xs text-slate-600">

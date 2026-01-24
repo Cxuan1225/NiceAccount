@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
+import { index as salesPaymentsIndex } from '@/routes/sales/payments';
 import { Head } from '@inertiajs/vue3';
 import { type BreadcrumbItem } from '@/types';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Sales (Payments)',
-        href: '/sales/payments',
+        href: salesPaymentsIndex().url,
     },
 ];
 </script>

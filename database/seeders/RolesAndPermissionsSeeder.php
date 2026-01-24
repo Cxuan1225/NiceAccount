@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 
@@ -10,23 +11,50 @@ class RolesAndPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
-        // example permissions (adjust for NiceAccount)
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
         $permissions = [
+            'access dashboard',
+            'view companies',
+            'manage companies',
             'view reports',
             'manage settings',
             'manage chart of accounts',
+            'manage customers',
         ];
 
-        foreach ($permissions as $p) {
-            Permission::firstOrCreate(['name' => $p]);
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate([
+                'name' => $permission,
+                'guard_name' => 'web',
+            ]);
         }
 
-        $admin = Role::firstOrCreate(['name' => 'admin']);
-        $manager = Role::firstOrCreate(['name' => 'manager']);
-        $staff = Role::firstOrCreate(['name' => 'staff']);
+        $superAdmin = Role::firstOrCreate([
+            'name' => 'Super Admin',
+            'guard_name' => 'web',
+        ]);
+        $admin = Role::firstOrCreate([
+            'name' => 'Admin',
+            'guard_name' => 'web',
+        ]);
+        $staff = Role::firstOrCreate([
+            'name' => 'Staff',
+            'guard_name' => 'web',
+        ]);
 
-        $admin->syncPermissions($permissions);
-        $manager->syncPermissions(['view reports']);
-        $staff->syncPermissions([]);
+        $superAdmin->syncPermissions($permissions);
+        $admin->syncPermissions([
+            'access dashboard',
+            'view companies',
+            'manage companies',
+            'view reports',
+            'manage chart of accounts',
+            'manage customers',
+        ]);
+        $staff->syncPermissions([
+            'access dashboard',
+            'view companies',
+        ]);
     }
 }

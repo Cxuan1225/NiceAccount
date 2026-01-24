@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
+import { index as coaIndex } from '@/routes/coa'
+import { create as openingBalanceCreate, store as openingBalanceStore } from '@/routes/opening-balance'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
@@ -12,7 +14,7 @@ const props = defineProps<{
 
 const breadcrumbs = [
     { title: 'Accountings', href: '#' },
-    { title: 'Opening Balance', href: '/accountings/opening-balance' },
+    { title: 'Opening Balance', href: openingBalanceCreate().url },
 ]
 
 const form = useForm({
@@ -55,7 +57,7 @@ const creditTotal = computed(() => {
 const diff = computed(() => Number((debitTotal.value - creditTotal.value).toFixed(2)))
 
 function submit() {
-    form.post('/accountings/opening-balance')
+    form.post(openingBalanceStore().url)
 }
 </script>
 
@@ -67,7 +69,7 @@ function submit() {
         <div class="px-6 py-4 max-w-5xl">
             <div class="flex items-center justify-between">
                 <h1 class="text-xl font-semibold">Opening Balance</h1>
-                <Link href="/accountings/chart-of-accounts" class="text-sm underline">Back to COA</Link>
+                <Link :href="coaIndex().url" class="text-sm underline">Back to COA</Link>
             </div>
 
             <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -140,7 +142,7 @@ function submit() {
                 <button class="border rounded px-4 py-2 text-sm" :disabled="form.processing" @click="submit">
                     {{ form.processing ? 'Posting...' : 'Post Opening Balance' }}
                 </button>
-                <Link href="/accountings/chart-of-accounts" class="border rounded px-4 py-2 text-sm">Cancel</Link>
+                <Link :href="coaIndex().url" class="border rounded px-4 py-2 text-sm">Cancel</Link>
             </div>
 
             <div class="mt-3 text-xs text-slate-600">

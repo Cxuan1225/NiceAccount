@@ -17,7 +17,7 @@ class CompanySeeder extends Seeder
             ['id' => 1],
             [
                 'name' => 'JC Clothing Sdn Bhd',
-                'currency' => 'MYR',
+                'base_currency' => 'MYR',
             ]
         );
     }

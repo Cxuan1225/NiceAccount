@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
+import { edit as customersEdit, index as customersIndex, update as customersUpdate } from '@/routes/customers'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { type BreadcrumbItem } from '@/types'
 
@@ -14,8 +15,8 @@ const props = defineProps<{
 }>()
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Customers', href: '/customers' },
-    { title: 'Edit', href: `/customers/${props.customer.id}/edit` },
+    { title: 'Customers', href: customersIndex().url },
+    { title: 'Edit', href: customersEdit(props.customer.id).url },
 ]
 
 const form = useForm({
@@ -26,7 +27,7 @@ const form = useForm({
 })
 
 function submit() {
-    form.put(`/customers/${props.customer.id}`)
+    form.put(customersUpdate(props.customer.id).url)
 }
 </script>
 
@@ -38,7 +39,7 @@ function submit() {
         <div class="px-6 py-4 max-w-xl">
             <div class="flex items-center justify-between">
                 <h1 class="text-xl font-semibold">Edit Customer</h1>
-                <Link href="/customers" class="text-sm underline">Back</Link>
+                <Link :href="customersIndex().url" class="text-sm underline">Back</Link>
             </div>
 
             <form class="mt-6 space-y-4" @submit.prevent="submit">
@@ -79,7 +80,7 @@ function submit() {
                         {{ form.processing ? 'Updating...' : 'Update' }}
                     </button>
 
-                    <Link href="/customers" class="px-4 py-2 border rounded">
+                    <Link :href="customersIndex().url" class="px-4 py-2 border rounded">
                         Cancel
                     </Link>
                 </div>

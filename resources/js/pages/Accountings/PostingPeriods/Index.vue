@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
+import { close as financialYearClose, store as financialYearStore } from '@/routes/accountings/financial-years'
+import { bulkLock as postingPeriodsBulkLock, bulkUnlock as postingPeriodsBulkUnlock, index as postingPeriodsIndex, lock as postingPeriodLock, unlock as postingPeriodUnlock } from '@/routes/accountings/posting-periods'
 import { Head, useForm, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import Swal from 'sweetalert2'
@@ -27,7 +29,7 @@ const props = defineProps<{ years: FY[] }>()
 
 const breadcrumbs = [
     { title: 'Accountings', href: '#' },
-    { title: 'Posting Periods', href: '/accountings/posting-periods' },
+    { title: 'Posting Periods', href: postingPeriodsIndex().url },
 ]
 
 const busyId = ref<number | null>(null)
@@ -68,7 +70,7 @@ async function lockPeriod(p: Period) {
 
     busyId.value = p.id
 
-    router.post(`/accountings/posting-periods/${p.id}/lock`, {}, {
+    router.post(postingPeriodLock(p.id).url, {}, {
         preserveScroll: true,
         onSuccess: () => {
             p.is_locked = true
@@ -85,7 +87,7 @@ async function unlockPeriod(p: Period) {
 
     busyId.value = p.id
 
-    router.post(`/accountings/posting-periods/${p.id}/unlock`, {}, {
+    router.post(postingPeriodUnlock(p.id).url, {}, {
         preserveScroll: true,
         onSuccess: () => {
             p.is_locked = false
@@ -117,7 +119,7 @@ function closeCreateFY() {
 }
 
 function submitFY() {
-    fyForm.post('/accountings/financial-years', {
+    fyForm.post(financialYearStore().url, {
         preserveScroll: true,
         onSuccess: () => {
             notyf.success('Financial year created')
@@ -257,8 +259,8 @@ async function bulkApply(fy: FY) {
     if (!confirmResult.isConfirmed) return
 
     const url = mode === 'lock'
-        ? '/accountings/posting-periods/bulk-lock'
-        : '/accountings/posting-periods/bulk-unlock'
+        ? postingPeriodsBulkLock().url
+        : postingPeriodsBulkUnlock().url
 
     router.post(url, { ids }, {
         preserveScroll: true,
@@ -310,7 +312,7 @@ async function closeFY(fy: FY) {
     const r = await confirmCloseFY()
     if (!r.isConfirmed) return
 
-    router.post(`/accountings/financial-years/${fy.id}/close`, {}, {
+    router.post(financialYearClose(fy.id).url, {}, {
         preserveScroll: true,
         onSuccess: () => {
             fy.is_closed = true

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
+import { create as journalEntryCreate, index as journalEntryIndex } from '@/routes/je'
+import { reverse as journalEntryReverse, show as journalEntryShow } from '@/routes/accountings/journal-entries'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { reactive, ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { notyf, confirmReverse } from '@/utils/alerts'
@@ -40,7 +42,7 @@ const props = defineProps<{
 
 const breadcrumbs = [
     { title: 'Accountings', href: '#' },
-    { title: 'Journal Entries', href: '/accountings/journal-entries' },
+    { title: 'Journal Entries', href: journalEntryIndex().url },
 ]
 
 // -------------------------
@@ -49,7 +51,7 @@ const breadcrumbs = [
 const form = reactive({ q: props.filters.q ?? '' })
 
 function apply() {
-    router.get('/accountings/journal-entries', { q: form.q || undefined }, { preserveState: true, replace: true })
+    router.get(journalEntryIndex().url, { q: form.q || undefined }, { preserveState: true, replace: true })
 }
 
 function goTo(url: string | null) {
@@ -72,7 +74,7 @@ async function openDetail(id: number) {
     detail.value = null
 
     try {
-        const res = await fetch(`/accountings/journal-entries/${id}`, {
+        const res = await fetch(journalEntryShow(id).url, {
             headers: { Accept: 'application/json' },
             credentials: 'same-origin',
         })
@@ -110,7 +112,7 @@ async function reverseEntry() {
     if (!result.isConfirmed) return
 
     try {
-        const res = await fetch(`/accountings/journal-entries/${detail.value.entry.id}/reverse`, {
+        const res = await fetch(journalEntryReverse(detail.value.entry.id).url, {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -170,7 +172,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
         <div class="px-6 py-4">
             <div class="flex items-center justify-between">
                 <h1 class="text-xl font-semibold">Journal Entries</h1>
-                <Link href="/accountings/journal-entries/create" class="text-sm underline">New Journal Entry</Link>
+                <Link :href="journalEntryCreate().url" class="text-sm underline">New Journal Entry</Link>
             </div>
 
             <div class="mt-4 flex gap-2 max-w-xl">
@@ -310,14 +312,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                     </div>
 
                     <div class="px-4 py-3 border-t flex justify-end gap-2">
-                        <Link v-if="detail?.entry?.id && !isPosted"
-                            :href="`/accountings/journal-entries/${detail.entry.id}/edit`"
-                            class="border rounded px-3 py-2 text-sm">
-                            Edit
-                        </Link>
-
-                        <span v-else class="text-sm text-slate-400 cursor-not-allowed self-center">
-                            Posted entries cannot be edited
+                        <span class="text-sm text-slate-400 cursor-not-allowed self-center">
+                            Editing not available
                         </span>
 
                         <button v-if="detail?.entry?.status === 'POSTED'"

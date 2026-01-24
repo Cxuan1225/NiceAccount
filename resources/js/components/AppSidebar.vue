@@ -11,6 +11,19 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as auditTrailsIndex } from '@/routes/audit-trails';
+import { index as coaIndex } from '@/routes/coa';
+import { index as companiesIndex } from '@/routes/companies';
+import { index as customersIndex } from '@/routes/customers';
+import { index as expensesBillsIndex } from '@/routes/expenses/bills';
+import { index as journalEntriesIndex } from '@/routes/je';
+import { create as openingBalanceCreate } from '@/routes/opening-balance';
+import { index as reportsIndex } from '@/routes/reports';
+import { index as salesInvoicesIndex } from '@/routes/sales/invoices';
+import { index as salesPaymentsIndex } from '@/routes/sales/payments';
+import { index as settingsIndex } from '@/routes/settings';
+import { index as accountingReportsIndex } from '@/routes/accountings/accounting-reports';
+import { index as postingPeriodsIndex } from '@/routes/accountings/posting-periods';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import {
@@ -34,11 +47,11 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Company',
         icon: Building2,
-        roles: ['admin'], // or remove if all users can switch
+        roles: ['Super Admin', 'Admin'], // or remove if all users can switch
         children: [
             {
                 title: 'Switch Company',
-                href: '/companies',
+                href: companiesIndex(),
             },
         ],
     },
@@ -46,47 +59,47 @@ const mainNavItems: NavItem[] = [
         title: 'Sales',
         icon: Receipt,
         children: [
-            { title: 'Invoices', href: '/sales/invoices' },
-            { title: 'Payments', href: '/sales/payments' },
+            { title: 'Invoices', href: salesInvoicesIndex() },
+            { title: 'Payments', href: salesPaymentsIndex() },
         ],
     },
     {
         title: 'Expenses (Bills)',
-        href: '/expenses/bills',
+        href: expensesBillsIndex(),
         icon: Wallet,
     },
     {
         title: 'Accountings',
         icon: Landmark,
-        roles: ['admin'],
+        roles: ['Super Admin', 'Admin'],
         children: [
-            { title: 'Chart of Accounts', href: '/accountings/chart-of-accounts' },
-            { title: 'Opening Balance', href: '/accountings/opening-balance' },
-            { title: 'Posting Periods', href: '/accountings/posting-periods' },
-            { title: 'Journal Entries', href: '/accountings/journal-entries' },
+            { title: 'Chart of Accounts', href: coaIndex() },
+            { title: 'Opening Balance', href: openingBalanceCreate() },
+            { title: 'Posting Periods', href: postingPeriodsIndex() },
+            { title: 'Journal Entries', href: journalEntriesIndex() },
             {
-                title: 'Accounting Reports', href: '/accountings/accounting-reports',
+                title: 'Accounting Reports', href: accountingReportsIndex(),
             },
         ],
     },
     {
         title: 'Customers',
-        href: '/customers',
+        href: customersIndex(),
         icon: Users,
     },
     {
         title: 'Reports',
-        href: '/reports',
+        href: reportsIndex(),
         icon: FileText,
     },
     {
         title: 'Settings',
-        href: '/settings',
+        href: settingsIndex(),
         icon: Settings,
     },
     {
         title: 'Audit Trails',
-        href: '/audit-trails',
+        href: auditTrailsIndex(),
         icon: Settings,
     },
 ];
