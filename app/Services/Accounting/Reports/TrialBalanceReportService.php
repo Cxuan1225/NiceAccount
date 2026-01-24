@@ -31,8 +31,8 @@ class TrialBalanceReportService {
                         WHEN je.id IS NULL THEN 0
                         WHEN (? = '' OR UPPER(je.status) = ?) THEN
                             CASE
-                                WHEN (? IS NOT NULL AND DATE(je.entry_date) < DATE(?)) THEN 0
-                                WHEN (? IS NOT NULL AND DATE(je.entry_date) > DATE(?)) THEN 0
+                        WHEN (?::date IS NOT NULL AND DATE(je.entry_date) < ?::date) THEN 0
+                        WHEN (?::date IS NOT NULL AND DATE(je.entry_date) > ?::date) THEN 0
                                 ELSE (COALESCE(l.debit,0) - COALESCE(l.credit,0))
                             END
                         ELSE 0
