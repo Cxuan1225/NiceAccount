@@ -31,6 +31,9 @@ class LinkUserCompanySeeder extends Seeder {
 
         // Set as active company
         $user->forceFill([ 'active_company_id' => $company->id ])->save();
+        if (!$user->company_id) {
+            $user->forceFill([ 'company_id' => $company->id ])->save();
+        }
 
         $this->command->info("User {$user->id} ({$user->name}) linked to company {$company->id} ({$company->name})");
     }

@@ -10,7 +10,10 @@ class CoaUpdateRequest extends FormRequest {
     public function authorize() : bool { return true; }
 
     public function rules() : array {
-        $companyId = (int) ($this->user()->company_id ?? 1);
+        $user = $this->user();
+        $companyId = (int) ($user?->isSuperAdmin()
+            ? ($user->active_company_id ?? $user->company_id ?? 0)
+            : ($user->company_id ?? 0));
 
         /** @var ChartOfAccount $account */
         $account = $this->route('account'); // route model binding name

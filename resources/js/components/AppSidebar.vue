@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import { index as auditTrailsIndex } from '@/routes/audit-trails';
 import { index as coaIndex } from '@/routes/coa';
-import { index as companiesIndex } from '@/routes/companies';
+import { index as companiesIndex, select as companiesSelect } from '@/routes/companies';
 import { index as customersIndex } from '@/routes/customers';
 import { index as expensesBillsIndex } from '@/routes/expenses/bills';
 import { index as journalEntriesIndex } from '@/routes/je';
@@ -24,6 +24,9 @@ import { index as salesPaymentsIndex } from '@/routes/sales/payments';
 import { index as settingsIndex } from '@/routes/settings';
 import { index as accountingReportsIndex } from '@/routes/accountings/accounting-reports';
 import { index as postingPeriodsIndex } from '@/routes/accountings/posting-periods';
+import { index as securityUsersIndex } from '@/routes/security/users';
+import { index as securityRolesIndex } from '@/routes/security/roles';
+import { index as securityPermissionsIndex } from '@/routes/security/permissions';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import {
@@ -51,6 +54,10 @@ const mainNavItems: NavItem[] = [
         children: [
             {
                 title: 'Switch Company',
+                href: companiesSelect(),
+            },
+            {
+                title: 'Companies',
                 href: companiesIndex(),
             },
         ],
@@ -91,6 +98,16 @@ const mainNavItems: NavItem[] = [
         title: 'Reports',
         href: reportsIndex(),
         icon: FileText,
+    },
+    {
+        title: 'Security',
+        icon: Settings,
+        roles: ['Super Admin', 'Admin'],
+        children: [
+            { title: 'Users', href: securityUsersIndex() },
+            { title: 'Roles', href: securityRolesIndex() },
+            { title: 'Permissions', href: securityPermissionsIndex() },
+        ],
     },
     {
         title: 'Settings',

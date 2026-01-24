@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Support\AuditTrail;
 use Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 
@@ -22,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::before(function ($user) {
+            return $user && $user->isSuperAdmin() ? true : null;
+        });
+
         $ignoreTables = config('audit.ignore_tables', []);
 
         Event::listen('eloquent.created: *', function ($eventName, $data) use ($ignoreTables) {

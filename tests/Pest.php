@@ -11,6 +11,11 @@
 |
 */
 
+use App\Models\Company;
+use App\Models\User;
+use Spatie\Permission\PermissionRegistrar;
+use Spatie\Permission\Models\Permission;
+
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
     ->in('Feature');
@@ -26,8 +31,8 @@ pest()->extend(Tests\TestCase::class)
 |
 */
 
-expect()->extend('toBeOne', function () {
-    return $this->toBe(1);
+beforeEach(function () {
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
 });
 
 /*
@@ -41,7 +46,31 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function makeCompany(array $overrides = []): Company
 {
-    // ..
+    return Company::factory()->create($overrides);
+}
+
+function makeUser(?Company $company = null, array $overrides = []): User
+{
+    $data = $overrides;
+    if ($company) {
+        $data['company_id'] = $company->id;
+        $data['active_company_id'] = $company->id;
+    }
+
+    return User::factory()->create($data);
+}
+
+function assignRole(User $user, string $role): User
+{
+    $user->assignRole($role);
+    return $user;
+}
+
+function givePerm(User $user, string $permission): User
+{
+    Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+    $user->givePermissionTo($permission);
+    return $user;
 }
