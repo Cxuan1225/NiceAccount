@@ -3,6 +3,7 @@ namespace App\Services\Accounting\PostingPeriods;
 
 use App\Models\Accounting\PostingPeriod;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Validation\ValidationException;
 
 class PostingPeriodService {
@@ -14,7 +15,7 @@ class PostingPeriodService {
      */
     public static function assertCanPost(
         int $companyId,
-        $entryDate,
+        CarbonInterface|\DateTimeInterface|string $entryDate,
         string $action = 'post',
         bool $useLock = false,
     ) : void {
@@ -50,7 +51,7 @@ class PostingPeriodService {
     /**
      * Convenience: true/false check.
      */
-    public static function canPost(int $companyId, $entryDate) : bool {
+    public static function canPost(int $companyId, CarbonInterface|\DateTimeInterface|string $entryDate) : bool {
         try {
             self::assertCanPost($companyId, $entryDate, 'post', false);
             return true;
@@ -62,7 +63,7 @@ class PostingPeriodService {
     /**
      * Get the posting period for a date (or null).
      */
-    public static function getPeriodForDate(int $companyId, $entryDate) : ?PostingPeriod {
+    public static function getPeriodForDate(int $companyId, CarbonInterface|\DateTimeInterface|string $entryDate) : ?PostingPeriod {
         $date = self::toCarbonDate($entryDate);
 
         return PostingPeriod::query()
@@ -75,11 +76,7 @@ class PostingPeriodService {
     /**
      * Normalize date inputs.
      */
-    private static function toCarbonDate($value) : Carbon {
-        if ($value instanceof Carbon)
-            return $value->copy()->startOfDay();
-
-        // supports DateTimeInterface too
+    private static function toCarbonDate(CarbonInterface|\DateTimeInterface|string $value) : Carbon {
         if ($value instanceof \DateTimeInterface) {
             return Carbon::instance($value)->startOfDay();
         }

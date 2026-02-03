@@ -10,6 +10,9 @@ class BalanceSheetReportRequest extends FormRequest {
         return (bool) $this->user();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules() : array {
         return [
             'as_at'     => [ 'nullable', 'date' ],

@@ -7,20 +7,28 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
+/**
+ * @implements WithMapping<array<string, mixed>>
+ */
 class TrialBalanceExport implements FromCollection, WithHeadings, WithMapping
 {
     public function __construct(
-        private Collection $rows,
-        private array $filters,
-        private array $totals
+        /** @var Collection<int, array<string, mixed>> */
+        private Collection $rows
     ) {
     }
 
-    public function collection()
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    public function collection(): Collection
     {
         return $this->rows;
     }
 
+    /**
+     * @return array<int, string>
+     */
     public function headings(): array
     {
         return [
@@ -32,14 +40,24 @@ class TrialBalanceExport implements FromCollection, WithHeadings, WithMapping
         ];
     }
 
+    /**
+     * @param array<string, mixed> $row
+     * @return array<int, string>
+     */
     public function map($row): array
     {
+        $accountCode = $row['account_code'] ?? '';
+        $name = $row['name'] ?? '';
+        $type = $row['type'] ?? '';
+        $endingDebit = $row['ending_debit'] ?? 0;
+        $endingCredit = $row['ending_credit'] ?? 0;
+
         return [
-            $row['account_code'],
-            $row['name'],
-            $row['type'],
-            number_format((float) $row['ending_debit'], 2, '.', ''),
-            number_format((float) $row['ending_credit'], 2, '.', ''),
+            is_string($accountCode) ? $accountCode : '',
+            is_string($name) ? $name : '',
+            is_string($type) ? $type : '',
+            number_format(is_numeric($endingDebit) ? (float) $endingDebit : 0.0, 2, '.', ''),
+            number_format(is_numeric($endingCredit) ? (float) $endingCredit : 0.0, 2, '.', ''),
         ];
     }
 }

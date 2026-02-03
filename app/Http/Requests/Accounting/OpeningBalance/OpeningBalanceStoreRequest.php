@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Accounting\OpeningBalance;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
 
 class OpeningBalanceStoreRequest extends FormRequest {
@@ -10,6 +11,9 @@ class OpeningBalanceStoreRequest extends FormRequest {
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules() : array {
         $user = $this->user();
         $companyId = (int) ($user?->isSuperAdmin()
@@ -25,7 +29,7 @@ class OpeningBalanceStoreRequest extends FormRequest {
                     'required',
                     'integer',
                     Rule::exists('chart_of_accounts', 'id')
-                        ->where(fn ($q) => $q->where('company_id', $companyId)->where('is_active', 1)),
+                        ->where(fn (Builder $q) => $q->where('company_id', $companyId)->where('is_active', 1)),
                 ],
             // IMPORTANT: make it gt:0 so we don't accept zero rows then silently skip
             'lines.*.amount'     => [ 'required', 'numeric', 'gt:0' ],

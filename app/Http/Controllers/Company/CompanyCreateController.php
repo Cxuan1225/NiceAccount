@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class CompanyCreateController extends Controller
 {
-    public function create()
+    public function create(): Response|InertiaResponse
     {
         return Inertia::render('Company/Create', [
             'defaults' => [
@@ -22,8 +24,9 @@ class CompanyCreateController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): Response|InertiaResponse
     {
+        /** @var array<string, mixed> $validated */
         $validated = $request->validate([
             'name' => [ 'required', 'string', 'max:255' ],
             'base_currency' => [ 'required', 'string', 'max:10' ],
@@ -32,14 +35,18 @@ class CompanyCreateController extends Controller
             'fy_start_month' => [ 'required', 'integer', 'min:1', 'max:12' ],
         ]);
 
-        $code = strtoupper(substr(preg_replace('/\s+/', '', $validated['name']), 0, 10));
+        $name = is_string($validated['name'] ?? null) ? $validated['name'] : '';
+        $normalized = preg_replace('/\s+/', '', $name) ?? '';
+        $code = strtoupper(substr($normalized, 0, 10));
 
-        $company = Company::create([
-            ...$validated,
+        $company = Company::create(array_merge($validated, [
             'code' => $code,
-        ]);
+        ]));
 
         $user = $request->user();
+        if (!$user) {
+            abort(403);
+        }
         $isDefault = !$user->companies()->exists();
 
         $user->companies()->attach($company->id, [

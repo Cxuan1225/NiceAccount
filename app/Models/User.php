@@ -4,6 +4,8 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -50,17 +52,26 @@ class User extends Authenticatable {
         ];
     }
 
-    public function companies() {
+    /**
+     * @return BelongsToMany<Company, $this, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'>
+     */
+    public function companies(): BelongsToMany {
         return $this->belongsToMany(Company::class)
             ->withPivot([ 'status', 'is_default', 'joined_at' ])
             ->withTimestamps();
     }
 
-    public function company() {
+    /**
+     * @return BelongsTo<Company, $this>
+     */
+    public function company(): BelongsTo {
         return $this->belongsTo(Company::class, 'company_id');
     }
 
-    public function activeCompany() {
+    /**
+     * @return BelongsTo<Company, $this>
+     */
+    public function activeCompany(): BelongsTo {
         return $this->belongsTo(Company::class, 'active_company_id');
     }
 

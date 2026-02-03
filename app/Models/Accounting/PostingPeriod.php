@@ -2,6 +2,8 @@
 
 namespace App\Models\Accounting;
 
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -26,6 +28,9 @@ class PostingPeriod extends Model
         'locked_at' => 'datetime',
     ];
 
+    /**
+     * @return BelongsTo<FinancialYear, $this>
+     */
     public function financialYear(): BelongsTo
     {
         return $this->belongsTo(FinancialYear::class, 'financial_year_id');
@@ -34,9 +39,13 @@ class PostingPeriod extends Model
     /**
      * Scope: period that contains a given date.
      */
-    public function scopeContainingDate($query, int $companyId, $date)
+    /**
+     * @param Builder<PostingPeriod> $query
+     * @return Builder<PostingPeriod>
+     */
+    public function scopeContainingDate(Builder $query, int $companyId, CarbonInterface|string $date): Builder
     {
-        $d = $date instanceof \Carbon\Carbon ? $date->toDateString() : (string) $date;
+        $d = $date instanceof CarbonInterface ? $date->toDateString() : (string) $date;
 
         return $query->where('company_id', $companyId)
             ->whereDate('period_start', '<=', $d)
@@ -46,7 +55,7 @@ class PostingPeriod extends Model
     public function lock(?int $userId = null): void
     {
         $this->is_locked = true;
-        $this->locked_by = $userId;
+        $this->locked_by = $userId !== null ? max(0, $userId) : null;
         $this->locked_at = now();
         $this->save();
     }

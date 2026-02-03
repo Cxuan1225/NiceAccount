@@ -6,10 +6,12 @@ use App\Http\Requests\CustomerStoreRequest;
 use App\Http\Requests\CustomerUpdateRequest;
 use App\Models\Customer;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class CustomerController extends Controller
 {
-    public function index()
+    public function index(): Response|InertiaResponse
     {
         return Inertia::render('Customers/Index', [
             'customers' => Customer::query()
@@ -24,12 +26,12 @@ class CustomerController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): Response|InertiaResponse
     {
         return Inertia::render('Customers/Create');
     }
 
-    public function store(CustomerStoreRequest $request)
+    public function store(CustomerStoreRequest $request): Response|InertiaResponse
     {
         Customer::create($request->validated());
 
@@ -37,14 +39,14 @@ class CustomerController extends Controller
             ->with('success', 'Customer created.');
     }
 
-    public function edit(Customer $customer)
+    public function edit(Customer $customer): Response|InertiaResponse
     {
         return Inertia::render('Customers/Edit', [
             'customer' => $customer->only('id', 'name', 'email', 'phone', 'address'),
         ]);
     }
 
-    public function update(CustomerUpdateRequest $request, Customer $customer)
+    public function update(CustomerUpdateRequest $request, Customer $customer): Response|InertiaResponse
     {
         $customer->update($request->validated());
 
@@ -52,7 +54,7 @@ class CustomerController extends Controller
             ->with('success', 'Customer updated.');
     }
 
-    public function destroy(Customer $customer)
+    public function destroy(Customer $customer): Response|InertiaResponse
     {
         $customer->delete();
 
@@ -60,4 +62,3 @@ class CustomerController extends Controller
             ->with('success', 'Customer deleted.');
     }
 }
-

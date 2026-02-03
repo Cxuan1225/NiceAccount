@@ -11,6 +11,9 @@ class CompanyIndexRequest extends FormRequest
         return (bool) $this->user()?->can('company.companies.view');
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

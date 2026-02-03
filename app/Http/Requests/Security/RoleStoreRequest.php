@@ -11,6 +11,9 @@ class RoleStoreRequest extends FormRequest
         return (bool) $this->user()?->can('security.roles.create');
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

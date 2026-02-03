@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 
 class RoleData
 {
+    /**
+     * @param array<int, string> $permissions
+     */
     public function __construct(
         public readonly string $name,
         public readonly array $permissions,
@@ -19,9 +22,12 @@ class RoleData
             $permissions = [];
         }
 
+        $nameRaw = $request->input('name');
+        $name = is_string($nameRaw) ? $nameRaw : '';
+
         return new self(
-            name: (string) $request->input('name'),
-            permissions: $permissions,
+            name: $name,
+            permissions: array_values(array_filter($permissions, 'is_string')),
         );
     }
 }

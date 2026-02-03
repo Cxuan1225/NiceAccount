@@ -7,6 +7,9 @@ use Spatie\Permission\Models\Permission;
 
 class PermissionService
 {
+    /**
+     * @return LengthAwarePaginator<int, Permission>
+     */
     public function list(string $q, int $perPage): LengthAwarePaginator
     {
         return Permission::query()

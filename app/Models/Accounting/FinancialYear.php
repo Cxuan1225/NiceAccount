@@ -2,6 +2,8 @@
 
 namespace App\Models\Accounting;
 
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -23,6 +25,9 @@ class FinancialYear extends Model
         'is_closed' => 'boolean',
     ];
 
+    /**
+     * @return HasMany<PostingPeriod, $this>
+     */
     public function periods(): HasMany
     {
         return $this->hasMany(PostingPeriod::class, 'financial_year_id');
@@ -31,9 +36,13 @@ class FinancialYear extends Model
     /**
      * Scope: current FY for a given date.
      */
-    public function scopeForDate($query, int $companyId, $date)
+    /**
+     * @param Builder<FinancialYear> $query
+     * @return Builder<FinancialYear>
+     */
+    public function scopeForDate(Builder $query, int $companyId, CarbonInterface|string $date): Builder
     {
-        $d = $date instanceof \Carbon\Carbon ? $date->toDateString() : (string) $date;
+        $d = $date instanceof CarbonInterface ? $date->toDateString() : (string) $date;
 
         return $query->where('company_id', $companyId)
             ->whereDate('start_date', '<=', $d)

@@ -11,6 +11,9 @@ class PermissionIndexRequest extends FormRequest
         return (bool) $this->user()?->can('security.permissions.view');
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

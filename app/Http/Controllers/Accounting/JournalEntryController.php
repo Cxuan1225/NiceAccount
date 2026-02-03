@@ -14,9 +14,11 @@ use App\Services\Accounting\JournalEntries\JournalEntryReversalService;
 use App\Services\Accounting\JournalEntries\JournalEntryService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class JournalEntryController extends BaseAccountingController {
-    public function index(JournalEntryIndexRequest $request, JournalEntryService $service) {
+    public function index(JournalEntryIndexRequest $request, JournalEntryService $service): Response|InertiaResponse {
         $filters = JournalEntryIndexFiltersDTO::fromRequest($request, $this->companyId);
 
         $entries = $service->list($filters);
@@ -27,13 +29,13 @@ class JournalEntryController extends BaseAccountingController {
         ]);
     }
 
-    public function create(JournalEntryService $service) {
+    public function create(JournalEntryService $service): Response|InertiaResponse {
         return Inertia::render('Accountings/JournalEntries/Create', [
             'accounts' => $service->activeAccountsOptions($this->companyId),
         ]);
     }
 
-    public function store(JournalEntryStoreRequest $request, JournalEntryService $service) {
+    public function store(JournalEntryStoreRequest $request, JournalEntryService $service): Response|InertiaResponse {
         $dto = JournalEntryStoreDTO::fromRequest($request, $this->companyId);
 
         $service->createManualPosted($dto);
@@ -41,7 +43,7 @@ class JournalEntryController extends BaseAccountingController {
         return redirect()->route('je.index');
     }
 
-    public function show(Request $request, JournalEntry $journalEntry, JournalEntryQueryService $service) {
+    public function show(Request $request, JournalEntry $journalEntry, JournalEntryQueryService $service): Response|InertiaResponse {
         abort_unless($journalEntry->company_id == $this->companyId, 404);
 
         return response()->json(
@@ -49,8 +51,11 @@ class JournalEntryController extends BaseAccountingController {
         );
     }
 
-    public function reverse(JournalEntryReverseRequest $request, JournalEntry $journalEntry, JournalEntryReversalService $service,
-    ) {
+    public function reverse(
+        JournalEntryReverseRequest $request,
+        JournalEntry $journalEntry,
+        JournalEntryReversalService $service,
+    ): Response|InertiaResponse {
         abort_unless($journalEntry->company_id == $this->companyId, 404);
 
         $dto = JournalEntryReverseDTO::fromRequest($request, $this->companyId, (int) $journalEntry->id);

@@ -18,8 +18,13 @@ class TwoFactorAuthenticationController extends Controller {
     public function show(TwoFactorAuthenticationRequest $request) : Response {
         $request->ensureStateIsValid();
 
+        $user = $request->user();
+        if (!$user) {
+            abort(403);
+        }
+
         return Inertia::render('settings/TwoFactor', [
-            'twoFactorEnabled'     => $request->user()->hasEnabledTwoFactorAuthentication(),
+            'twoFactorEnabled'     => $user->hasEnabledTwoFactorAuthentication(),
             'requiresConfirmation' => Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm'),
         ]);
     }

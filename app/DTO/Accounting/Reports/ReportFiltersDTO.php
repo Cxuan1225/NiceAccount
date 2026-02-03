@@ -40,6 +40,9 @@ final class ReportFiltersDTO {
     /**
      * ✅ SINGLE SOURCE OF TRUTH FOR FILTER KEYS (snake_case)
      */
+    /**
+     * @return array<string, mixed>
+     */
     public function toFilterArray() : array {
         return [
             'from'         => $this->from ?? '',

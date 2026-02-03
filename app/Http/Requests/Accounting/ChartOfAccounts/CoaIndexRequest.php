@@ -9,6 +9,9 @@ class CoaIndexRequest extends FormRequest {
         return true; // or permission check
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules() : array {
         return [
             'q'        => [ 'nullable', 'string', 'max:255' ],

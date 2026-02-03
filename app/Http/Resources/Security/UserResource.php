@@ -2,11 +2,26 @@
 
 namespace App\Http\Resources\Security;
 
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin User
+ */
 class UserResource extends JsonResource
 {
-    public function toArray($request): array
+    /**
+     * @return array{
+     *   id:int,
+     *   name:string,
+     *   email:string,
+     *   company_id:int|null,
+     *   company:array{id:int, name:string}|null,
+     *   roles:array<int, string>
+     * }
+     */
+    public function toArray(Request $request): array
     {
         return [
             'id' => (int) $this->id,
@@ -19,7 +34,10 @@ class UserResource extends JsonResource
                     'name' => (string) $this->company->name,
                 ]
                 : null,
-            'roles' => $this->getRoleNames()->values()->all(),
+            'roles' => $this->getRoleNames()
+                ->map(fn ($name) => is_string($name) ? $name : '')
+                ->values()
+                ->all(),
         ];
     }
 }

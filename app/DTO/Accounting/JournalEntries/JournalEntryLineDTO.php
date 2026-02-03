@@ -11,6 +11,9 @@ class JournalEntryLineDTO {
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toCreateArray(int $companyId, int $journalEntryId) : array {
         return [
             'company_id'       => $companyId,

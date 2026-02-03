@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class CompanySettingsController extends Controller {
-    public function edit(Request $request) {
+    public function edit(Request $request): Response|InertiaResponse {
         $companyId = $this->currentCompanyId();
 
         $company = Company::query()
@@ -37,9 +39,10 @@ class CompanySettingsController extends Controller {
         ]);
     }
 
-    public function update(Request $request) {
+    public function update(Request $request): Response|InertiaResponse {
         $companyId = $this->currentCompanyId();
 
+        /** @var array<string, mixed> $validated */
         $validated = $request->validate([
             'name'           => [ 'required', 'string', 'max:255' ],
             'base_currency'  => [ 'required', 'string', 'max:10' ],

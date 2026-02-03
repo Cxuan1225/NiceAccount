@@ -22,6 +22,9 @@ class JournalEntryIndexFiltersDTO {
         );
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toFiltersArray() : array {
         return [
             'q'        => $this->q,

@@ -4,8 +4,19 @@ namespace App\Services\Accounting\Reports;
 
 use App\DTO\Accounting\Reports\ReportFiltersDTO;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 
 class ProfitLossReportService {
+    /**
+     * @return array{
+     *   filters:array<string, mixed>,
+     *   sections:array{
+     *     income:Collection<int, array{account_id:int, account_code:string, name:string, type:string, amount:float}>,
+     *     expenses:Collection<int, array{account_id:int, account_code:string, name:string, type:string, amount:float}>
+     *   },
+     *   totals:array{income:float, expenses:float, net_profit:float}
+     * }
+     */
     public function build(ReportFiltersDTO $f) : array {
         $rows = DB::table('journal_entry_lines as l')
             ->join('journal_entries as je', 'je.id', '=', 'l.journal_entry_id')
@@ -39,13 +50,13 @@ class ProfitLossReportService {
                 2) as amount
             ")
             ->get()
-            ->map(function ($r) {
+            ->map(function ($r): array {
                 return [
-                    'account_id'   => (int) $r->account_id,
-                    'account_code' => (string) $r->account_code,
-                    'name'         => (string) $r->name,
-                    'type'         => (string) $r->type,
-                    'amount'       => (float) $r->amount,
+                    'account_id'   => $this->toInt($r->account_id ?? null),
+                    'account_code' => $this->toString($r->account_code ?? null),
+                    'name'         => $this->toString($r->name ?? null),
+                    'type'         => $this->toString($r->type ?? null),
+                    'amount'       => $this->toFloat($r->amount ?? null),
                 ];
             });
 
@@ -56,8 +67,8 @@ class ProfitLossReportService {
         $incomeRows  = $rows->where('type', 'INCOME')->values();
         $expenseRows = $rows->where('type', 'EXPENSE')->values();
 
-        $totalIncome  = round($incomeRows->sum('amount'), 2);
-        $totalExpense = round($expenseRows->sum('amount'), 2);
+        $totalIncome  = round($this->toFloat($incomeRows->sum('amount')), 2);
+        $totalExpense = round($this->toFloat($expenseRows->sum('amount')), 2);
         $netProfit    = round($totalIncome - $totalExpense, 2);
 
         return [
@@ -72,5 +83,24 @@ class ProfitLossReportService {
                 'net_profit' => $netProfit,
             ],
         ];
+    }
+
+    private function toInt(mixed $value): int
+    {
+        return is_numeric($value) ? (int) $value : 0;
+    }
+
+    private function toFloat(mixed $value): float
+    {
+        return is_numeric($value) ? (float) $value : 0.0;
+    }
+
+    private function toString(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        return is_numeric($value) ? (string) $value : '';
     }
 }

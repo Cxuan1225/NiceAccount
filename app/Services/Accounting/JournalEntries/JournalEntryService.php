@@ -9,11 +9,15 @@ use App\Models\Accounting\JournalEntry;
 use App\Models\Accounting\JournalEntryLine;
 use App\Services\Accounting\PostingPeriods\PostingPeriodService;
 use Carbon\Carbon;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class JournalEntryService {
+    /**
+     * @return LengthAwarePaginator<int, array<string, mixed>>
+     */
     public function list(JournalEntryIndexFiltersDTO $dto) : LengthAwarePaginator {
         return JournalEntry::query()
             ->where('company_id', $dto->companyId)
@@ -28,18 +32,29 @@ class JournalEntryService {
             ->orderByDesc('id')
             ->paginate($dto->perPage)
             ->withQueryString()
-            ->through(fn ($e) => [
-                'id'           => (int) $e->id,
-                'entry_date'   => $e->entry_date?->format('d-m-Y'),
-                'reference_no' => $e->reference_no,
-                'memo'         => $e->memo,
-                'status'       => $e->status,
-                'source_type'  => $e->source_type,
-                'created_at'   => $e->created_at?->format('d-m-Y H:i:s'),
-            ]);
+            ->through(function (JournalEntry $e) {
+                $entryDate = $e->entry_date->format('d-m-Y');
+                $createdAt = $e->created_at?->format('d-m-Y H:i:s') ?? '';
+
+                /** @var array<string, mixed> $row */
+                $row = [
+                    'id'           => (int) $e->id,
+                    'entry_date'   => $entryDate,
+                    'reference_no' => $e->reference_no,
+                    'memo'         => $e->memo,
+                    'status'       => $e->status,
+                    'source_type'  => $e->source_type,
+                    'created_at'   => $createdAt,
+                ];
+
+                return $row;
+            });
     }
 
-    public function activeAccountsOptions(int $companyId) {
+    /**
+     * @return Collection<int, array{id:int, account_code:string, name:string, type:string}>
+     */
+    public function activeAccountsOptions(int $companyId): Collection {
         return ChartOfAccount::query()
             ->where('company_id', $companyId)
             ->where('is_active', 1)

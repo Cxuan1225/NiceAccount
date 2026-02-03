@@ -12,13 +12,20 @@ use App\Http\Resources\Company\CompanyResource;
 use App\Models\Company;
 use App\Services\Company\CompanyService;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class CompanyController extends Controller
 {
-    public function index(CompanyIndexRequest $request, CompanyService $service)
+    public function index(CompanyIndexRequest $request, CompanyService $service): Response|InertiaResponse
     {
         $filters = CompanyIndexFiltersDTO::fromRequest($request);
-        $companies = $service->list($request->user(), $filters);
+        $actor = $request->user();
+        if (!$actor) {
+            abort(403);
+        }
+
+        $companies = $service->list($actor, $filters);
 
         return Inertia::render('Company/Companies/Index', [
             'companies' => CompanyResource::collection($companies),
@@ -28,20 +35,25 @@ class CompanyController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): Response|InertiaResponse
     {
         return Inertia::render('Company/Companies/Create');
     }
 
-    public function store(CompanyStoreRequest $request, CompanyService $service)
+    public function store(CompanyStoreRequest $request, CompanyService $service): Response|InertiaResponse
     {
+        $actor = $request->user();
+        if (!$actor) {
+            abort(403);
+        }
+
         $dto = CompanyData::fromRequest($request);
-        $service->create($request->user(), $dto);
+        $service->create($actor, $dto);
 
         return redirect()->route('companies.index');
     }
 
-    public function edit(Company $company)
+    public function edit(Company $company): Response|InertiaResponse
     {
         $user = request()->user();
         if ($user && !$user->isSuperAdmin() && (int) $user->company_id !== (int) $company->id) {
@@ -53,17 +65,27 @@ class CompanyController extends Controller
         ]);
     }
 
-    public function update(CompanyUpdateRequest $request, Company $company, CompanyService $service)
+    public function update(CompanyUpdateRequest $request, Company $company, CompanyService $service): Response|InertiaResponse
     {
+        $actor = $request->user();
+        if (!$actor) {
+            abort(403);
+        }
+
         $dto = CompanyData::fromRequest($request);
-        $service->update($request->user(), $company, $dto);
+        $service->update($actor, $company, $dto);
 
         return redirect()->route('companies.index');
     }
 
-    public function destroy(Company $company, CompanyService $service)
+    public function destroy(Company $company, CompanyService $service): Response|InertiaResponse
     {
-        $service->delete(request()->user(), $company);
+        $actor = request()->user();
+        if (!$actor) {
+            abort(403);
+        }
+
+        $service->delete($actor, $company);
 
         return redirect()->route('companies.index');
     }

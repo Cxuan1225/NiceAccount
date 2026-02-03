@@ -7,10 +7,12 @@ use App\Http\Requests\Security\PermissionIndexRequest;
 use App\Http\Resources\Security\PermissionResource;
 use App\Services\Security\PermissionService;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class PermissionController extends Controller
 {
-    public function index(PermissionIndexRequest $request, PermissionService $service)
+    public function index(PermissionIndexRequest $request, PermissionService $service): Response|InertiaResponse
     {
         $permissions = $service->list(
             (string) $request->query('q', ''),

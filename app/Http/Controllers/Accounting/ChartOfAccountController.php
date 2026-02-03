@@ -10,9 +10,11 @@ use App\Http\Requests\Accounting\ChartOfAccounts\CoaUpdateRequest;
 use App\Models\Accounting\ChartOfAccount;
 use App\Services\Accounting\ChartOfAccounts\ChartOfAccountService;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class ChartOfAccountController extends BaseAccountingController {
-    public function index(CoaIndexRequest $request, ChartOfAccountService $service) {
+    public function index(CoaIndexRequest $request, ChartOfAccountService $service): Response|InertiaResponse {
         $filters = CoaIndexFiltersDTO::fromRequest($request, $this->companyId);
 
         $accounts = $service->list($filters);
@@ -24,14 +26,14 @@ class ChartOfAccountController extends BaseAccountingController {
         ]);
     }
 
-    public function create(ChartOfAccountService $service) {
+    public function create(ChartOfAccountService $service): Response|InertiaResponse {
         return Inertia::render('Accountings/ChartOfAccounts/Create', [
             'types'   => $this->coaTypes(),
             'parents' => $service->parentsOptions($this->companyId),
         ]);
     }
 
-    public function store(CoaStoreRequest $request, ChartOfAccountService $service) {
+    public function store(CoaStoreRequest $request, ChartOfAccountService $service): Response|InertiaResponse {
         $dto = CoaUpsertDTO::fromRequest($request, $this->companyId);
 
         $service->create($dto);
@@ -39,7 +41,7 @@ class ChartOfAccountController extends BaseAccountingController {
         return redirect()->route('coa.index');
     }
 
-    public function edit(ChartOfAccount $account, ChartOfAccountService $service) {
+    public function edit(ChartOfAccount $account, ChartOfAccountService $service): Response|InertiaResponse {
         abort_unless($account->company_id == $this->companyId, 404);
 
         return Inertia::render('Accountings/ChartOfAccounts/Edit', [
@@ -56,7 +58,7 @@ class ChartOfAccountController extends BaseAccountingController {
         ]);
     }
 
-    public function update(CoaUpdateRequest $request, ChartOfAccount $account, ChartOfAccountService $service) {
+    public function update(CoaUpdateRequest $request, ChartOfAccount $account, ChartOfAccountService $service): Response|InertiaResponse {
         abort_unless($account->company_id == $this->companyId, 404);
 
         $dto = CoaUpsertDTO::fromRequest($request, $this->companyId);
@@ -66,7 +68,7 @@ class ChartOfAccountController extends BaseAccountingController {
         return redirect()->route('coa.index');
     }
 
-    public function destroy(ChartOfAccount $account, ChartOfAccountService $service) {
+    public function destroy(ChartOfAccount $account, ChartOfAccountService $service): Response|InertiaResponse {
         abort_unless($account->company_id == $this->companyId, 404);
 
         $service->delete($account);

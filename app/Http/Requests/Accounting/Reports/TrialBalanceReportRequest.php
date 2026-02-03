@@ -10,6 +10,9 @@ class TrialBalanceReportRequest extends FormRequest {
         return (bool) $this->user();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules() : array {
         return [
             'from'      => [ 'nullable', 'date' ],
@@ -22,8 +25,8 @@ class TrialBalanceReportRequest extends FormRequest {
         ];
     }
 
-    public function withValidator($validator) : void {
-        $validator->after(function ($v) {
+    public function withValidator(\Illuminate\Validation\Validator $validator) : void {
+        $validator->after(function (\Illuminate\Validation\Validator $v) {
             $from = $this->query('from');
             $to   = $this->query('to');
 

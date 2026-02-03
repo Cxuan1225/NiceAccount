@@ -2,6 +2,8 @@
 namespace App\Models\Accounting;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 class JournalEntry extends Model {
     protected $fillable = [
         'company_id',
@@ -17,7 +19,10 @@ class JournalEntry extends Model {
         'entry_date' => 'date',
     ];
 
-    public function lines() {
+    /**
+     * @return HasMany<JournalEntryLine, $this>
+     */
+    public function lines(): HasMany {
         return $this->hasMany(JournalEntryLine::class, 'journal_entry_id');
     }
 }

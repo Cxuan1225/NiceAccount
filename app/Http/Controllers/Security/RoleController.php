@@ -11,11 +11,13 @@ use App\Http\Requests\Security\RoleUpdateRequest;
 use App\Http\Resources\Security\RoleResource;
 use App\Services\Security\RoleService;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Spatie\Permission\Models\Role;
+use Symfony\Component\HttpFoundation\Response;
 
 class RoleController extends Controller
 {
-    public function index(RoleIndexRequest $request, RoleService $service)
+    public function index(RoleIndexRequest $request, RoleService $service): Response|InertiaResponse
     {
         $filters = RoleIndexFiltersDTO::fromRequest($request);
         $roles = $service->list($filters);
@@ -28,14 +30,14 @@ class RoleController extends Controller
         ]);
     }
 
-    public function create(RoleService $service)
+    public function create(RoleService $service): Response|InertiaResponse
     {
         return Inertia::render('Security/Roles/Create', [
             'permissions' => $service->permissionsList(),
         ]);
     }
 
-    public function store(RoleStoreRequest $request, RoleService $service)
+    public function store(RoleStoreRequest $request, RoleService $service): Response|InertiaResponse
     {
         $dto = RoleData::fromRequest($request);
         $service->create($dto);
@@ -43,7 +45,7 @@ class RoleController extends Controller
         return redirect()->route('security.roles.index');
     }
 
-    public function edit(Role $role, RoleService $service)
+    public function edit(Role $role, RoleService $service): Response|InertiaResponse
     {
         return Inertia::render('Security/Roles/Edit', [
             'role' => RoleResource::make($role->load('permissions')),
@@ -51,7 +53,7 @@ class RoleController extends Controller
         ]);
     }
 
-    public function update(RoleUpdateRequest $request, Role $role, RoleService $service)
+    public function update(RoleUpdateRequest $request, Role $role, RoleService $service): Response|InertiaResponse
     {
         $dto = RoleData::fromRequest($request);
         $service->update($role, $dto);
@@ -59,7 +61,7 @@ class RoleController extends Controller
         return redirect()->route('security.roles.index');
     }
 
-    public function destroy(Role $role, RoleService $service)
+    public function destroy(Role $role, RoleService $service): Response|InertiaResponse
     {
         $service->delete($role);
 

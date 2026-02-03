@@ -11,6 +11,9 @@ class CompanyUpdateRequest extends FormRequest
         return (bool) $this->user()?->can('company.companies.update');
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

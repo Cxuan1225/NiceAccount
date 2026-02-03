@@ -6,10 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class CompanySwitchController extends Controller {
-    public function index(Request $request) {
+    public function index(Request $request): Response|InertiaResponse {
         $user = $request->user();
+        if (!$user) {
+            abort(403);
+        }
 
         if ($user->isSuperAdmin()) {
             $companies = Company::query()
@@ -38,13 +43,18 @@ class CompanySwitchController extends Controller {
         ]);
     }
 
-    public function store(Request $request) {
+    public function store(Request $request): Response|InertiaResponse {
+        /** @var array<string, mixed> $validated */
         $validated = $request->validate([
             'company_id' => [ 'required', 'integer' ],
         ]);
 
         $user      = $request->user();
-        $companyId = (int) $validated['company_id'];
+        if (!$user) {
+            abort(403);
+        }
+        $companyIdRaw = $validated['company_id'] ?? 0;
+        $companyId = is_numeric($companyIdRaw) ? (int) $companyIdRaw : 0;
 
         $ok = $user->isSuperAdmin()
             ? Company::query()->where('id', $companyId)->exists()

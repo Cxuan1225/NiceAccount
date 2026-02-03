@@ -4,16 +4,22 @@ namespace App\Services\Accounting\PostingPeriods;
 
 use App\DTO\Accounting\PostingPeriods\PostingPeriodIndexFiltersDTO;
 use App\Models\Accounting\FinancialYear;
+use App\Models\Accounting\PostingPeriod;
 
 class PostingPeriodQueryService {
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function indexData(PostingPeriodIndexFiltersDTO $filters) : array {
         $q = FinancialYear::query()
             ->where('company_id', $filters->companyId)
             ->orderByDesc('start_date')
             ->with([
                 'periods' => function ($p) use ($filters) {
-                    $p->where('company_id', $filters->companyId)
-                        ->orderBy('period_start');
+                    if ($p instanceof \Illuminate\Database\Eloquent\Relations\HasMany) {
+                        $p->where('company_id', $filters->companyId)
+                            ->orderBy('period_start');
+                    }
                 }
             ]);
 
@@ -22,24 +28,41 @@ class PostingPeriodQueryService {
         }
 
         return $q->get()
-            ->map(function ($fy) {
-                return [
+            ->map(function (FinancialYear $fy) {
+                $startDate = $fy->start_date->format('d-m-Y');
+                $endDate = $fy->end_date->format('d-m-Y');
+
+                $periods = $fy->periods->map(function (PostingPeriod $p) {
+                    $periodStart = $p->period_start->format('d-m-Y');
+                    $periodEnd = $p->period_end->format('d-m-Y');
+                    $lockedAt = $p->locked_at?->format('d-m-Y H:i:s') ?? '';
+                    $lockedByRaw = $p->getAttribute('locked_by');
+                    $lockedBy = is_numeric($lockedByRaw) ? (int) $lockedByRaw : null;
+
+                    /** @var array<string, mixed> $row */
+                    $row = [
+                        'id'           => (int) $p->id,
+                        'period_start' => $periodStart,
+                        'period_end'   => $periodEnd,
+                        'is_locked'    => (bool) $p->is_locked,
+                        'locked_at'    => $lockedAt,
+                        'locked_by'    => $lockedBy,
+                    ];
+
+                    return $row;
+                })->values();
+
+                $name = is_string($fy->name ?? null) ? $fy->name : '';
+                $row = [
                     'id'         => (int) $fy->id,
-                    'name'       => (string) $fy->name,
-                    'start_date' => $fy->start_date?->format('d-m-Y'),
-                    'end_date'   => $fy->end_date?->format('d-m-Y'),
+                    'name'       => $name,
+                    'start_date' => $startDate,
+                    'end_date'   => $endDate,
                     'is_closed'  => (bool) $fy->is_closed,
-                    'periods'    => $fy->periods->map(function ($p) {
-                        return [
-                            'id'           => (int) $p->id,
-                            'period_start' => $p->period_start?->format('d-m-Y'),
-                            'period_end'   => $p->period_end?->format('d-m-Y'),
-                            'is_locked'    => (bool) $p->is_locked,
-                            'locked_at'    => $p->locked_at?->format('d-m-Y H:i:s'),
-                            'locked_by'    => $p->locked_by ? (int) $p->locked_by : null,
-                        ];
-                    })->values(),
+                    'periods'    => $periods,
                 ];
+
+                return $row;
             })
             ->values()
             ->all();

@@ -11,6 +11,9 @@ class CompanyStoreRequest extends FormRequest
         return (bool) $this->user()?->can('company.companies.create');
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

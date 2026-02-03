@@ -9,6 +9,9 @@ class PostingPeriodIndexRequest extends FormRequest {
         return true; // add policy later if needed
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules() : array {
         return [
             // optional filters if you want later

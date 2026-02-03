@@ -12,9 +12,13 @@ class RoleUpdateRequest extends FormRequest
         return (bool) $this->user()?->can('security.roles.update');
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
-        $roleId = $this->route('role')?->id ?? null;
+        $role = $this->route('role');
+        $roleId = is_object($role) && property_exists($role, 'id') ? $role->id : null;
 
         return [
             'name' => [ 'required', 'string', 'max:255', Rule::unique('roles', 'name')->ignore($roleId) ],

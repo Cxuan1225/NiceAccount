@@ -23,10 +23,12 @@ class BackfillCompanyDefaults extends Command {
     /**
      * Execute the console command.
      */
-    public function handle() {
+    public function handle(): int {
         Company::whereNull('code')->each(function ($company) {
+            $name = (string) $company->name;
+            $normalized = preg_replace('/\s+/', '', $name) ?? '';
             $company->update([
-                'code'           => strtoupper(substr(preg_replace('/\s+/', '', $company->name), 0, 10)),
+                'code'           => strtoupper(substr($normalized, 0, 10)),
                 'timezone'       => 'Asia/Kuala_Lumpur',
                 'date_format'    => 'd/m/Y',
                 'fy_start_month' => 1,
@@ -34,5 +36,6 @@ class BackfillCompanyDefaults extends Command {
             ]);
         });
 
+        return self::SUCCESS;
     }
 }

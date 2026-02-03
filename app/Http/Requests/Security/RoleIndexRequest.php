@@ -11,6 +11,9 @@ class RoleIndexRequest extends FormRequest
         return (bool) $this->user()?->can('security.roles.view');
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

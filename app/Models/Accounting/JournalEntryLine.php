@@ -2,6 +2,7 @@
 namespace App\Models\Accounting;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class JournalEntryLine extends Model
 {
@@ -19,11 +20,17 @@ class JournalEntryLine extends Model
         'credit' => 'decimal:2',
     ];
 
-    public function entry()
+    /**
+     * @return BelongsTo<JournalEntry, $this>
+     */
+    public function entry(): BelongsTo
     {
         return $this->belongsTo(JournalEntry::class, 'journal_entry_id');
     }
-    public function account()
+    /**
+     * @return BelongsTo<ChartOfAccount, $this>
+     */
+    public function account(): BelongsTo
     {
         return $this->belongsTo(ChartOfAccount::class, 'account_id');
     }

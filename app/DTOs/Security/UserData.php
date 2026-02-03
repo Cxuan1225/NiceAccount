@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 
 class UserData
 {
+    /**
+     * @param array<int, string> $roleNames
+     */
     public function __construct(
         public readonly string $name,
         public readonly string $email,
@@ -22,15 +25,24 @@ class UserData
             $roleNames = [];
         }
 
-        $companyId = $request->input('company_id');
-        $companyId = $companyId === null || $companyId === '' ? null : (int) $companyId;
+        $companyIdRaw = $request->input('company_id');
+        $companyId = null;
+        if ($companyIdRaw !== null && $companyIdRaw !== '' && is_numeric($companyIdRaw)) {
+            $companyId = (int) $companyIdRaw;
+        }
+        $nameRaw = $request->input('name');
+        $emailRaw = $request->input('email');
+        $passwordRaw = $request->input('password');
+        $name = is_string($nameRaw) ? $nameRaw : '';
+        $email = is_string($emailRaw) ? $emailRaw : '';
+        $password = is_string($passwordRaw) ? $passwordRaw : null;
 
         return new self(
-            name: (string) $request->input('name'),
-            email: (string) $request->input('email'),
-            password: $request->input('password'),
+            name: $name,
+            email: $email,
+            password: $password,
             companyId: $companyId,
-            roleNames: $roleNames,
+            roleNames: array_values(array_filter($roleNames, 'is_string')),
         );
     }
 }

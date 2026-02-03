@@ -4,8 +4,29 @@ namespace App\Services\Accounting\Reports;
 
 use App\Support\Accounting\NormalBalance;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 
 class BalanceSheetReportService {
+    /**
+     * @return array{
+     *   filters:array{as_at:string, status:string, status_label:string, show_zero:bool},
+     *   assets:array<int, array{id:int, account_code:string, name:string, type:string, parent_id:int|null, debit:float, credit:float, balance:float, is_active:bool, company_id:int}>,
+     *   liabilities:array<int, array{id:int, account_code:string, name:string, type:string, parent_id:int|null, debit:float, credit:float, balance:float, is_active:bool, company_id:int}>,
+     *   equity:array<int, array{id:int, account_code:string, name:string, type:string, parent_id:int|null, debit:float, credit:float, balance:float, is_active:bool, company_id:int}>,
+     *   retainedEarnings:float,
+     *   retainedEarningsMapped:bool,
+     *   retainedEarningsAccountId:int|null,
+     *   totals:array{
+     *     totalAssets:float,
+     *     totalLiabilities:float,
+     *     totalEquityBase:float,
+     *     totalEquity:float,
+     *     totalLiabEquity:float,
+     *     isBalanced:bool,
+     *     difference:float
+     *   }
+     * }
+     */
     public function build(
         int $companyId,
         string $asAt,
@@ -19,15 +40,17 @@ class BalanceSheetReportService {
             ->where('id', $companyId)
             ->value('retained_earnings_account_id');
 
-        $retainedAccountId = $retainedAccountId ? (int) $retainedAccountId : null;
+        $retainedAccountId = is_numeric($retainedAccountId) ? (int) $retainedAccountId : null;
 
         // 1) Pull ALL COA for this company (need parent rollup)
+        /** @var Collection<int, \stdClass> $coas */
         $coas = DB::table('chart_of_accounts')
             ->select('id', 'account_code', 'name', 'type', 'parent_id', 'is_active', 'company_id')
             ->where('company_id', $companyId)
             ->get();
 
         // 2) Aggregate sums per account up to as_at
+        /** @var Collection<int, \stdClass> $sums */
         $sums = DB::table('journal_entry_lines as l')
             ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
             ->selectRaw('l.account_id, COALESCE(SUM(l.debit),0) as debit_sum, COALESCE(SUM(l.credit),0) as credit_sum')
@@ -44,39 +67,52 @@ class BalanceSheetReportService {
 
 
         // 3) Build node map (account => computed balance), then roll-up to parents
+        /** @var array<int, array{id:int, account_code:string, name:string, type:string, parent_id:int|null, debit:float, credit:float, balance:float, is_active:bool, company_id:int}> $nodes */
         $nodes = [];
         foreach ($coas as $a) {
-            $row = $sums->get($a->id);
+            $id = $this->toInt($a->id ?? null);
+            $row = $sums->get($id);
 
-            $debit  = $row ? (float) $row->debit_sum : 0.0;
-            $credit = $row ? (float) $row->credit_sum : 0.0;
+            $debit  = $row ? $this->toFloat($row->debit_sum ?? null) : 0.0;
+            $credit = $row ? $this->toFloat($row->credit_sum ?? null) : 0.0;
+            $type = $this->toString($a->type ?? null);
+            $parentIdRaw = $a->parent_id ?? null;
+            $parentId = is_numeric($parentIdRaw) ? (int) $parentIdRaw : null;
 
-            $nodes[(int) $a->id] = [
-                'id'           => (int) $a->id,
-                'account_code' => (string) $a->account_code,
-                'name'         => (string) $a->name,
-                'type'         => (string) $a->type,
-                'parent_id'    => $a->parent_id ? (int) $a->parent_id : null,
+            $nodes[$id] = [
+                'id'           => $id,
+                'account_code' => $this->toString($a->account_code ?? null),
+                'name'         => $this->toString($a->name ?? null),
+                'type'         => $type,
+                'parent_id'    => $parentId,
                 'debit'        => $debit,
                 'credit'       => $credit,
-                'balance'      => $normalBalance((string) $a->type, $debit, $credit),
+                'balance'      => $normalBalance($type, $debit, $credit),
                 'is_active'    => (bool) $a->is_active,
-                'company_id'   => (int) $a->company_id,
+                'company_id'   => $this->toInt($a->company_id ?? null),
             ];
         }
 
         // Roll-up leaf balances into parent nodes
         foreach ($nodes as $id => $n) {
+            /** @var array{id:int, account_code:string, name:string, type:string, parent_id:int|null, debit:float, credit:float, balance:float, is_active:bool, company_id:int} $n */
             $bal = (float) $n['balance'];
             $p   = $n['parent_id'];
 
-            while ($p && isset($nodes[$p])) {
-                $nodes[$p]['balance'] += $bal;
-                $p                     = $nodes[$p]['parent_id'];
+            while (is_int($p)) {
+                if (!array_key_exists($p, $nodes)) {
+                    break;
+                }
+                /** @var array{id:int, account_code:string, name:string, type:string, parent_id:int|null, debit:float, credit:float, balance:float, is_active:bool, company_id:int} $parent */
+                $parent = $nodes[$p];
+                $parent['balance'] += $bal;
+                $nodes[$p] = $parent;
+                $p = $parent['parent_id'];
             }
         }
 
         // 4) Retained Earnings = (Income - Expense) up to asAt (same status filter)
+        /** @var \stdClass|null $pl */
         $pl = DB::table('journal_entry_lines as l')
             ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
             ->join('chart_of_accounts as c', 'c.id', '=', 'l.account_id')
@@ -90,8 +126,8 @@ class BalanceSheetReportService {
             ->when($status !== '', fn ($q) => $q->whereRaw('UPPER(e.status) = ?', [ $status ]))
             ->first();
 
-        $incomeTotal      = $pl ? (float) $pl->income_total : 0.0;
-        $expenseTotal     = $pl ? (float) $pl->expense_total : 0.0;
+        $incomeTotal      = $pl ? $this->toFloat($pl->income_total ?? null) : 0.0;
+        $expenseTotal     = $pl ? $this->toFloat($pl->expense_total ?? null) : 0.0;
         $retainedEarnings = $incomeTotal - $expenseTotal;
 
         // 4.1) Validate retained earnings mapping (must be EQUITY + same company)
@@ -105,15 +141,21 @@ class BalanceSheetReportService {
         }
 
         // 4.2) Inject retained earnings into selected equity COA (so it appears as normal row and rolls up)
-        if ($injectRetainedIntoCoa) {
+        if ($injectRetainedIntoCoa && $retainedAccountId !== null && isset($nodes[$retainedAccountId])) {
             $delta = (float) $retainedEarnings;
 
             $nodes[$retainedAccountId]['balance'] += $delta;
 
             $p = $nodes[$retainedAccountId]['parent_id'];
-            while ($p && isset($nodes[$p])) {
-                $nodes[$p]['balance'] += $delta;
-                $p                     = $nodes[$p]['parent_id'];
+            while (is_int($p)) {
+                if (!array_key_exists($p, $nodes)) {
+                    break;
+                }
+                /** @var array{id:int, account_code:string, name:string, type:string, parent_id:int|null, debit:float, credit:float, balance:float, is_active:bool, company_id:int} $parent */
+                $parent = $nodes[$p];
+                $parent['balance'] += $delta;
+                $nodes[$p] = $parent;
+                $p = $parent['parent_id'];
             }
         }
 
@@ -123,6 +165,7 @@ class BalanceSheetReportService {
         $equity      = [];
 
         foreach ($nodes as $n) {
+            /** @var array{id:int, account_code:string, name:string, type:string, parent_id:int|null, debit:float, credit:float, balance:float, is_active:bool, company_id:int} $n */
             if (!in_array($n['type'], [ 'ASSET', 'LIABILITY', 'EQUITY' ], true)) {
                 continue;
             }
@@ -155,12 +198,14 @@ class BalanceSheetReportService {
         }
 
         // 6) Sort
-        $sortByCode = function ($a, $b) {
-            $ac  = (string) ($a['account_code'] ?? '');
-            $bc  = (string) ($b['account_code'] ?? '');
+        $sortByCode = function (array $a, array $b): int {
+            $ac  = is_string($a['account_code'] ?? null) ? $a['account_code'] : '';
+            $bc  = is_string($b['account_code'] ?? null) ? $b['account_code'] : '';
             $cmp = strcmp($ac, $bc);
             if ($cmp !== 0) return $cmp;
-            return strcmp((string) $a['name'], (string) $b['name']);
+            $an = is_string($a['name'] ?? null) ? $a['name'] : '';
+            $bn = is_string($b['name'] ?? null) ? $b['name'] : '';
+            return strcmp($an, $bn);
         };
         usort($assets, $sortByCode);
         usort($liabilities, $sortByCode);
@@ -200,5 +245,24 @@ class BalanceSheetReportService {
                 'difference'       => $totalAssets - $totalLiabEquity,
             ],
         ];
+    }
+
+    private function toInt(mixed $value): int
+    {
+        return is_numeric($value) ? (int) $value : 0;
+    }
+
+    private function toFloat(mixed $value): float
+    {
+        return is_numeric($value) ? (float) $value : 0.0;
+    }
+
+    private function toString(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        return is_numeric($value) ? (string) $value : '';
     }
 }

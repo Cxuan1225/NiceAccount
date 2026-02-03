@@ -123,6 +123,9 @@ class OpeningBalanceService {
         });
     }
 
+    /**
+     * @return array{0: float, 1: float}
+     */
     private function mapOpeningAmountToDrCr(string $accountType, float $amount) : array {
         if (in_array($accountType, [ 'ASSET', 'EXPENSE' ], true)) {
             return [ $amount, 0.0 ];

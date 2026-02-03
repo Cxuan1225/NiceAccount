@@ -2,11 +2,37 @@
 
 namespace App\Http\Resources\Company;
 
+use App\Models\Company;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Company
+ */
 class CompanyResource extends JsonResource
 {
-    public function toArray($request): array
+    /**
+     * @return array{
+     *   id:int,
+     *   code:string,
+     *   name:string,
+     *   base_currency:string,
+     *   timezone:string,
+     *   date_format:string,
+     *   fy_start_month:int,
+     *   email:string|null,
+     *   phone:string|null,
+     *   address_line1:string|null,
+     *   address_line2:string|null,
+     *   address_line3:string|null,
+     *   city:string|null,
+     *   state:string|null,
+     *   postcode:string|null,
+     *   country:string|null,
+     *   is_active:bool
+     * }
+     */
+    public function toArray(Request $request): array
     {
         return [
             'id' => (int) $this->id,

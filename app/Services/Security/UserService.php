@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Hash;
 
 class UserService
 {
+    /**
+     * @return LengthAwarePaginator<int, User>
+     */
     public function list(User $actor, UserIndexFiltersDTO $filters): LengthAwarePaginator
     {
         return User::query()

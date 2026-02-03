@@ -3,11 +3,15 @@
 namespace App\Http\Requests\Accounting\JournalEntries;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
 
 class JournalEntryStoreRequest extends FormRequest {
     public function authorize() : bool { return true; }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules() : array {
         $user = $this->user();
         $companyId = (int) ($user?->isSuperAdmin()
@@ -24,7 +28,7 @@ class JournalEntryStoreRequest extends FormRequest {
                 'required',
                 'integer',
                 Rule::exists('chart_of_accounts', 'id')
-                    ->where(fn ($q) => $q->where('company_id', $companyId)),
+                    ->where(fn (Builder $q) => $q->where('company_id', $companyId)),
             ],
             'lines.*.description' => [ 'nullable', 'string', 'max:255' ],
             'lines.*.debit'       => [ 'nullable', 'numeric', 'min:0' ],

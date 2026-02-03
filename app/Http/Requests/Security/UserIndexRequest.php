@@ -11,6 +11,9 @@ class UserIndexRequest extends FormRequest
         return (bool) $this->user()?->can('security.users.view');
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

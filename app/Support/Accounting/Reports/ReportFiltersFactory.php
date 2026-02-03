@@ -13,6 +13,9 @@ final class ReportFiltersFactory {
      *  - status: '' means ALL, otherwise uppercase (POSTED/DRAFT/VOID)
      *  - statusLabel: "All" or "Posted"/"Draft"/"Void"
      */
+    /**
+     * @return array{statusRaw:string, status:string, statusLabel:string}
+     */
     public static function status(Request $request, string $key = 'status', string $default = 'posted') : array {
         $statusRaw = (string) $request->query($key, $default);
         $rawTrim   = trim($statusRaw);
@@ -51,9 +54,13 @@ final class ReportFiltersFactory {
      * Date range filters used by P&L / TB / GL.
      * Returns UI-safe strings for from/to ('').
      */
+    /**
+     * @param array{fromKey?:string, toKey?:string} $opts
+     * @return array{from:string, to:string, fromDb:string|null, toDb:string|null}
+     */
     public static function dateRange(Request $request, array $opts = []) : array {
-        $fromKey = $opts['fromKey'] ?? 'from';
-        $toKey   = $opts['toKey'] ?? 'to';
+        $fromKey = isset($opts['fromKey']) ? (string) $opts['fromKey'] : 'from';
+        $toKey   = isset($opts['toKey']) ? (string) $opts['toKey'] : 'to';
 
         $from = $request->query($fromKey);
         $to   = $request->query($toKey);
@@ -75,9 +82,13 @@ final class ReportFiltersFactory {
      * As-at filter used by Balance Sheet.
      * Returns UI-safe string for as_at (YYYY-MM-DD).
      */
+    /**
+     * @param array{key?:string, default?:string} $opts
+     * @return array{as_at:string, asAtDb:string}
+     */
     public static function asAt(Request $request, array $opts = []) : array {
-        $key     = $opts['key'] ?? 'as_at';
-        $default = $opts['default'] ?? now()->toDateString();
+        $key     = isset($opts['key']) ? (string) $opts['key'] : 'as_at';
+        $default = isset($opts['default']) ? (string) $opts['default'] : now()->toDateString();
 
         $asAt   = $request->query($key);
         $asAtUi = ($asAt !== null && $asAt !== '') ? (string) $asAt : (string) $default;
@@ -91,6 +102,9 @@ final class ReportFiltersFactory {
     /**
      * Account dropdown selection used by General Ledger.
      * Returns UI-safe string for <select>.
+     */
+    /**
+     * @return array{account_id:string, accountIdDb:int|null}
      */
     public static function accountId(Request $request, string $key = 'account_id') : array {
         $v = $request->query($key);

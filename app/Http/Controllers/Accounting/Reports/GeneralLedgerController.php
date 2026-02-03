@@ -9,9 +9,11 @@ use App\Support\Accounting\Reports\ReportFiltersFactory as Filters;
 use App\Services\Accounting\Reports\GeneralLedgerReportService;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class GeneralLedgerController extends BaseAccountingController {
-    public function index(GeneralLedgerReportRequest $request, GeneralLedgerReportService $service) {
+    public function index(GeneralLedgerReportRequest $request, GeneralLedgerReportService $service): Response|InertiaResponse {
         $companyId = $this->companyId;
 
         $accounts = DB::table('chart_of_accounts')
@@ -19,13 +21,20 @@ class GeneralLedgerController extends BaseAccountingController {
             ->where('company_id', $companyId)
             ->orderBy('account_code')
             ->get()
-            ->map(fn ($a) => [
-                'id'           => (int) $a->id,
-                'account_code' => (string) $a->account_code,
-                'name'         => (string) $a->name,
-                'type'         => (string) $a->type,
-                'label'        => trim($a->account_code . ' - ' . $a->name),
-            ]);
+            ->map(function ($a) {
+                $id = is_numeric($a->id ?? null) ? (int) $a->id : 0;
+                $accountCode = is_string($a->account_code ?? null) ? $a->account_code : '';
+                $name = is_string($a->name ?? null) ? $a->name : '';
+                $type = is_string($a->type ?? null) ? $a->type : '';
+
+                return [
+                    'id'           => $id,
+                    'account_code' => $accountCode,
+                    'name'         => $name,
+                    'type'         => $type,
+                    'label'        => trim($accountCode . ' - ' . $name),
+                ];
+            });
 
         $base    = ReportFiltersDTO::fromRequest($request, $companyId);
         $account = Filters::accountId($request); // account_id / accountIdDb

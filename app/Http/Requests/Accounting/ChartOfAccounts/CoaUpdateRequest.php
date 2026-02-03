@@ -3,12 +3,16 @@
 namespace App\Http\Requests\Accounting\ChartOfAccounts;
 
 use App\Models\Accounting\ChartOfAccount;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class CoaUpdateRequest extends FormRequest {
     public function authorize() : bool { return true; }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules() : array {
         $user = $this->user();
         $companyId = (int) ($user?->isSuperAdmin()
@@ -27,7 +31,7 @@ class CoaUpdateRequest extends FormRequest {
                 'max:50',
                 Rule::unique('chart_of_accounts', 'account_code')
                     ->ignore($account->id)
-                    ->where(fn ($q) => $q->where('company_id', $companyId)),
+                    ->where(fn (Builder $q) => $q->where('company_id', $companyId)),
             ],
             'name'         => [ 'required', 'string', 'max:255' ],
             'type'         => [ 'required', Rule::in($coaTypes) ],
@@ -35,7 +39,7 @@ class CoaUpdateRequest extends FormRequest {
                 'nullable',
                 'integer',
                 Rule::exists('chart_of_accounts', 'id')
-                    ->where(fn ($q) => $q->where('company_id', $companyId)),
+                    ->where(fn (Builder $q) => $q->where('company_id', $companyId)),
             ],
             'is_active'    => [ 'required', 'boolean' ],
         ];

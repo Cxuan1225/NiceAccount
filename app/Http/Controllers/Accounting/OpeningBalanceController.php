@@ -7,10 +7,12 @@ use App\Http\Requests\Accounting\OpeningBalance\OpeningBalanceStoreRequest;
 use App\Models\Accounting\ChartOfAccount;
 use App\Services\Accounting\OpeningBalance\OpeningBalanceService;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response;
 use RuntimeException;
 
 class OpeningBalanceController extends BaseAccountingController {
-    public function create(OpeningBalanceService $service) {
+    public function create(OpeningBalanceService $service): Response|InertiaResponse {
         $accounts = ChartOfAccount::query()
             ->where('company_id', $this->companyId)
             ->where('is_active', 1)
@@ -42,7 +44,7 @@ class OpeningBalanceController extends BaseAccountingController {
         ]);
     }
 
-    public function store(OpeningBalanceStoreRequest $request, OpeningBalanceService $service) {
+    public function store(OpeningBalanceStoreRequest $request, OpeningBalanceService $service): Response|InertiaResponse {
         $dto = OpeningBalanceStoreDTO::fromRequest($request, $this->companyId);
 
         $service->create($dto);

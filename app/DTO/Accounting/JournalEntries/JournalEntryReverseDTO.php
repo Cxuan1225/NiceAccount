@@ -15,13 +15,18 @@ class JournalEntryReverseDTO {
     }
 
     public static function fromRequest(Request $request, int $companyId, int $journalEntryId) : self {
-        $reverseDate = (string) ($request->input('entry_date') ?: now()->toDateString());
+        $entryDate = $request->input('entry_date');
+        $reverseDate = is_string($entryDate) && $entryDate !== ''
+            ? $entryDate
+            : now()->toDateString();
+        $memoRaw = $request->input('memo');
+        $memo = is_string($memoRaw) && $memoRaw !== '' ? $memoRaw : null;
 
         return new self(
             companyId: $companyId,
             journalEntryId: $journalEntryId,
             reverseDate: $reverseDate,
-            memo: $request->input('memo') ?: null,
+            memo: $memo,
             userId: (int) (auth()->id() ?: 0),
         );
     }

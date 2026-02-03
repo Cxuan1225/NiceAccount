@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\AuditTrail;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class AuditTrailController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): Response|InertiaResponse
     {
         // Basic filters
         $q         = trim((string) $request->query('q', ''));

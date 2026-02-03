@@ -9,6 +9,9 @@ class PostingPeriodBulkRequest extends FormRequest {
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules() : array {
         return [
             'ids'   => [ 'required', 'array', 'min:1' ],

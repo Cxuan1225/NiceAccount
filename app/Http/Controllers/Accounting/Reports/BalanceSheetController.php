@@ -8,9 +8,11 @@ use App\DTO\Accounting\Reports\ReportFiltersDTO;
 use App\Support\Accounting\Reports\ReportFiltersFactory as Filters;
 use App\Services\Accounting\Reports\BalanceSheetReportService;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class BalanceSheetController extends BaseAccountingController {
-    public function index(BalanceSheetReportRequest $request, BalanceSheetReportService $service) {
+    public function index(BalanceSheetReportRequest $request, BalanceSheetReportService $service): Response|InertiaResponse {
         $companyId = $this->companyId;
 
         $base = ReportFiltersDTO::fromRequest($request, $companyId);

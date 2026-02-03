@@ -2,7 +2,7 @@
 
 namespace App\DTO\Accounting\OpeningBalance;
 
-use Illuminate\Http\Request;
+use Illuminate\Foundation\Http\FormRequest;
 
 class OpeningBalanceStoreDTO {
     public int     $companyId;
@@ -12,6 +12,9 @@ class OpeningBalanceStoreDTO {
     /** @var array<int, array{account_id:int, amount:float}> */
     public array $lines;
 
+    /**
+     * @param array<int, array{account_id:int, amount:float}> $lines
+     */
     public function __construct(int $companyId, string $entryDate, ?string $memo, array $lines) {
         $this->companyId = $companyId;
         $this->entryDate = $entryDate;
@@ -19,20 +22,36 @@ class OpeningBalanceStoreDTO {
         $this->lines     = $lines;
     }
 
-    public static function fromRequest(Request $request, int $companyId) : self {
+    public static function fromRequest(FormRequest $request, int $companyId) : self {
         $data = $request->validated();
 
-        $lines = array_map(function ($l) {
-            return [
-                'account_id' => (int) $l['account_id'],
-                'amount'     => (float) $l['amount'],
-            ];
-        }, $data['lines'] ?? []);
+        $lines = [];
+        $rawLines = $data['lines'] ?? [];
+        if (is_array($rawLines)) {
+            foreach ($rawLines as $l) {
+                if (!is_array($l)) {
+                    continue;
+                }
+
+                $accountIdRaw = $l['account_id'] ?? 0;
+                $amountRaw = $l['amount'] ?? 0;
+
+                $lines[] = [
+                    'account_id' => is_numeric($accountIdRaw) ? (int) $accountIdRaw : 0,
+                    'amount'     => is_numeric($amountRaw) ? (float) $amountRaw : 0.0,
+                ];
+            }
+        }
+
+        $entryDateRaw = $data['entry_date'] ?? '';
+        $entryDate = is_string($entryDateRaw) ? $entryDateRaw : '';
+        $memoRaw = $data['memo'] ?? null;
+        $memo = is_string($memoRaw) ? $memoRaw : null;
 
         return new self(
             $companyId,
-            (string) $data['entry_date'],
-            isset($data['memo']) ? (string) $data['memo'] : null,
+            $entryDate,
+            $memo,
             $lines,
         );
     }

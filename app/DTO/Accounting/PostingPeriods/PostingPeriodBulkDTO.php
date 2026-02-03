@@ -16,7 +16,19 @@ class PostingPeriodBulkDTO {
     }
 
     public static function fromRequest(PostingPeriodBulkRequest $request, int $companyId) : self {
-        $ids = array_map('intval', $request->input('ids', []));
+        $ids = [];
+        $rawIds = $request->input('ids', []);
+        if (is_array($rawIds)) {
+            foreach ($rawIds as $id) {
+                if (is_int($id)) {
+                    $ids[] = $id;
+                    continue;
+                }
+                if (is_string($id) || is_float($id)) {
+                    $ids[] = (int) $id;
+                }
+            }
+        }
 
         return new self(
             companyId: $companyId,

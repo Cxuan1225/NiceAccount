@@ -11,6 +11,9 @@ use Illuminate\Support\Str;
 
 class CompanyService
 {
+    /**
+     * @return LengthAwarePaginator<int, Company>
+     */
     public function list(User $actor, CompanyIndexFiltersDTO $filters): LengthAwarePaginator
     {
         return Company::query()
@@ -30,7 +33,8 @@ class CompanyService
 
     public function create(User $actor, CompanyData $dto): Company
     {
-        $code = strtoupper(substr(preg_replace('/\s+/', '', $dto->name), 0, 10));
+        $normalizedName = preg_replace('/\s+/', '', $dto->name) ?? '';
+        $code = strtoupper(substr($normalizedName, 0, 10));
 
         $company = Company::create([
             'code' => $code ?: Str::upper(Str::random(6)),

@@ -12,9 +12,13 @@ class UserUpdateRequest extends FormRequest
         return (bool) $this->user()?->can('security.users.update');
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
-        $userId = $this->route('user')?->id ?? null;
+        $user = $this->route('user');
+        $userId = is_object($user) && property_exists($user, 'id') ? $user->id : null;
 
         return [
             'name' => [ 'required', 'string', 'max:255' ],

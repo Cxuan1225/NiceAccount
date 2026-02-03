@@ -10,6 +10,9 @@ use Spatie\Permission\Models\Role;
 
 class RoleService
 {
+    /**
+     * @return LengthAwarePaginator<int, Role>
+     */
     public function list(RoleIndexFiltersDTO $filters): LengthAwarePaginator
     {
         return Role::query()
@@ -22,6 +25,9 @@ class RoleService
             ->withQueryString();
     }
 
+    /**
+     * @return array<int, array{id:int, name:string, label:string, category:string, description:mixed}>
+     */
     public function permissionsList(): array
     {
         return Permission::query()
@@ -29,18 +35,27 @@ class RoleService
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get([ 'id', 'name', 'label', 'category', 'description' ])
-            ->map(fn ($p) => [
-                'id' => (int) $p->id,
-                'name' => (string) $p->name,
-                'label' => $p->label ?? $p->name,
-                'category' => $p->category ?? 'General',
-                'description' => $p->description,
-            ])
+            ->map(function (Permission $p): array {
+                $labelRaw = $p->getAttribute('label');
+                $categoryRaw = $p->getAttribute('category');
+                $description = $p->getAttribute('description');
+                $label = is_string($labelRaw) ? $labelRaw : null;
+                $category = is_string($categoryRaw) ? $categoryRaw : null;
+
+                return [
+                    'id' => (int) $p->id,
+                    'name' => (string) $p->name,
+                    'label' => $label ?? (string) $p->name,
+                    'category' => $category ?? 'General',
+                    'description' => $description,
+                ];
+            })
             ->all();
     }
 
     public function create(RoleData $dto): Role
     {
+        /** @var Role $role */
         $role = Role::create([
             'name' => $dto->name,
             'guard_name' => 'web',

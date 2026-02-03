@@ -11,6 +11,9 @@ class UserStoreRequest extends FormRequest
         return (bool) $this->user()?->can('security.users.create');
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

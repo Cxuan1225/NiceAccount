@@ -12,8 +12,11 @@ class PostingPeriodIndexFiltersDTO {
     }
 
     public static function fromRequest(PostingPeriodIndexRequest $request, int $companyId) : self {
-        $fyId = $request->input('financial_year_id');
-        $fyId = is_null($fyId) ? null : (int) $fyId;
+        $fyIdRaw = $request->input('financial_year_id');
+        $fyId = null;
+        if ($fyIdRaw !== null && $fyIdRaw !== '' && is_numeric($fyIdRaw)) {
+            $fyId = (int) $fyIdRaw;
+        }
 
         return new self(
             companyId: $companyId,
@@ -21,6 +24,9 @@ class PostingPeriodIndexFiltersDTO {
         );
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toFiltersArray() : array {
         return [
             'financial_year_id' => $this->financialYearId,

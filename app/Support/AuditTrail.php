@@ -15,6 +15,9 @@ class AuditTrail
      * - UPDATE: stores only changed fields (old/new).
      * - INSERT: stores new_data.
      * - DELETE: stores old_data.
+     *
+     * @param array<string, mixed>|list<array<string, mixed>>|string|null $oldData
+     * @param array<string, mixed>|list<array<string, mixed>>|string|null $newData
      */
     public static function insertLog(
         string $screenName,
@@ -46,8 +49,8 @@ class AuditTrail
             'action' => $action,
             'old_data' => $changesOld ? json_encode($changesOld) : null,
             'new_data' => $changesNew ? json_encode($changesNew) : null,
-            'ip_address' => $isCli ? null : request()?->ip(),
-            'user_agent' => $isCli ? null : request()?->userAgent(),
+            'ip_address' => $isCli ? null : request()->ip(),
+            'user_agent' => $isCli ? null : request()->userAgent(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -60,15 +63,16 @@ class AuditTrail
     {
         $table = $model->getTable();
         $key = $model->getKey();
+        $tableId = (is_int($key) || is_string($key)) ? $key : null;
 
         if ($action === 'INSERT') {
-            self::insertLog($screenName, $table, 'INSERT', null, $model->getAttributes(), $key);
+            self::insertLog($screenName, $table, 'INSERT', null, $model->getAttributes(), $tableId);
             return;
         }
 
         if ($action === 'DELETE') {
             // on delete event, original is still available
-            self::insertLog($screenName, $table, 'DELETE', $model->getOriginal(), null, $key);
+            self::insertLog($screenName, $table, 'DELETE', $model->getOriginal(), null, $tableId);
             return;
         }
 
@@ -82,11 +86,15 @@ class AuditTrail
                 $old[$field] = $model->getOriginal($field);
             }
 
-            self::insertLog($screenName, $table, 'UPDATE', $old, $changes, $key);
+            self::insertLog($screenName, $table, 'UPDATE', $old, $changes, $tableId);
             return;
         }
     }
 
+    /**
+     * @param array<string, mixed>|list<array<string, mixed>>|string|null $data
+     * @return array<int|string, mixed>
+     */
     private static function normalizeData(array|string|null $data): array
     {
         if ($data === null || $data === '')
@@ -97,7 +105,7 @@ class AuditTrail
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new \InvalidArgumentException('Audit:Invalid JSON format.');
             }
-            // if it was an array of rows, take first row (matches your old behavior) :contentReference[oaicite:2]{index=2}
+            // if it was an array of rows, take first row (matches your old behavior)
             return (is_array($decoded) && isset($decoded[0])) ? (array) $decoded[0] : (array) $decoded;
         }
 
@@ -105,6 +113,11 @@ class AuditTrail
         return (isset($data[0]) && is_array($data[0])) ? (array) $data[0] : $data;
     }
 
+    /**
+     * @param array<int|string, mixed> $oldArr
+     * @param array<int|string, mixed> $newArr
+     * @return array{0:array<int|string, mixed>|null, 1:array<int|string, mixed>|null}
+     */
     private static function diffByAction(string $action, array $oldArr, array $newArr): array
     {
         if ($action === 'INSERT') {
@@ -115,7 +128,7 @@ class AuditTrail
             return [$oldArr ?: null, null];
         }
 
-        // UPDATE: only changed keys (like your old tool) :contentReference[oaicite:3]{index=3}
+        // UPDATE: only changed keys (like your old tool)
         $changesOld = [];
         $changesNew = [];
 
